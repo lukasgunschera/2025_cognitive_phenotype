@@ -1,43 +1,63 @@
-## ============================================================================================================================ ##
-## Script:       Global Preprocessing LCID Data
-## ============================================================================================================================ ##
+## ======================================================================================================================= ##
+## Script:       PREPROCESS LCID DATAFILES
+## ======================================================================================================================= ##
 ## Authors:      Lukas Gunschera
 ## Contact:      l.gunschera@outlook.com
 ##
 ## Date created: 2024-07-11
-## ============================================================================================================================ ##
+## ======================================================================================================================= ##
 
-rm(list = ls()); set.seed(777)
+## SETUP ====================================================================================================================
 
-library(pacman) #!line below installs any uninstalled packages
-pacman::p_load(here, extrafont, tidyr, magrittr, haven, readr, stringr, ggplot2, ggthemes, viridis, ggpubr, cowplot, dplyr)
+# recreate package environment
+library(renv)
+renv::restore()
 
-here::i_am("README.md")
-here::here()
+set.seed(777)
 
-# SOURCE FUNCTIONS ----------------------------------------------------------------------------------------------------------
-source(here("code","lcid_delaydiscount", "functions", "fun_plots.R"))
-source(here("code", "lcid_delaydiscount", "functions", "fun_helper.R"))
+library(ragg)
+library(here)
+library(dplyr)
+library(haven)
+library(tidyr)
+library(readr)
+library(ggpubr)
+library(janitor)
+library(stringr)
+library(ggplot2)
+library(viridis)
+library(cowplot)
+library(magrittr)
+library(ggthemes)
+library(extrafont)
 
-# PROCESS RAW DATA ----------------------------------------------------------------------------------------------------------
-# Coding across datasets in LCID:
+# set root
+here::i_am("renv.lock")
+
+# source functions
+source(here::here("code", "functions", "fun_plots.R"))
+source(here::here("code", "functions", "fun_helper.R"))
+
+## PROCESS RAW DATA =========================================================================================================
+# Coding conventions in LCID dataset
 # 0 = false, 1 = true
 # 0 = male, 1 = female
 # 999 = missing identifier
 # 998801 and 99901 pilot participant identifiers
 
-# DEMOGRAPHICS --------------------------------------------------------------------------------------------------------------
-dat_demographics <- haven::read_sav(here("data", "lcid", "raw", "mcc_demographics.sav"))
+### Demographics ------------------------------------------------------------------------------------------------------------
 
-# Create consistent subject identifier
+dat_demographics <- haven::read_sav(here("data", "raw", "mcc_demographics.sav"))
+
+# create consistent subject identifier
 dat_demographics %<>%
   dplyr::mutate(subjID = as.double(gsub("^mcc", "3", subjectid))) %>%
   dplyr::select(subjID, everything(), -cohort, -childnr, -familyid, -subjectid, -dplyr::contains("visitid"))
 
-# Indicate missing values
+# indicate missing values
 dat_demographics %<>% dplyr::mutate(across(where(is.numeric), ~ ifelse(. == 999, NA, .)))
 
-# Remove "mcc_" from columnnames
+# remove "mcc_" from columnnames
 dat_demographics %<>% dplyr::rename_with(~ str_replace(., "^mcc_", ""), starts_with("mcc_"))
 
 dat_demographics %<>%
@@ -46,19 +66,21 @@ dat_demographics %<>%
   dplyr::filter(!str_detect(subjID, "99901")) %>%  # remove rows with pilot participants
   dplyr::filter(!str_detect(subjID, "98801"))      # remove rows with pilot participants
 
-## Save Processed Demographics ----------------------------------------------------------------------------------------------
-readr::write_csv(dat_demographics, here("data", "lcid", "demographics.csv"))
+#### Save processed demographic data ----------------------------------------------------------------------------------------
 
-# QUESTIONNAIRES ------------------------------------------------------------------------------------------------------------
+readr::write_csv(dat_demographics, here("data", "processed", "demographics.csv"))
 
-# Load raw questionnaire data of relevant waves 5 to 7
-dat_q05 <- haven::read_sav(here("data", "lcid", "raw", "mcc_ses_w05_questionnaires.sav"))
-dat_q06 <- haven::read_sav(here("data", "lcid", "raw", "mcc_ses_w06_questionnaires.sav"))
-dat_q07 <- haven::read_sav(here("data", "lcid","raw", "mcc_ses_w07_questionnaires.sav"))
+### Questionnaires ----------------------------------------------------------------------------------------------------------
 
+# load raw questionnaire data of relevant waves 5 to 7
+dat_q05 <- haven::read_sav(here("data", "raw", "mcc_ses_w05_questionnaires.sav"))
+dat_q06 <- haven::read_sav(here("data", "raw", "mcc_ses_w06_questionnaires.sav"))
+dat_q07 <- haven::read_sav(here("data", "raw", "mcc_ses_w07_questionnaires.sav"))
+
+#### Data processing function -----------------------------------------------------------------------------------------------
 process_questionnaires <- function(df) {
 
-  # Set wave value for later wave-dependent processing
+  # set wave value for later wave-dependent processing
   if (any(grepl("5", df$Wave))) {
     wave_value <- 5
   } else if (any(grepl("6", df$Wave))) {
@@ -67,7 +89,7 @@ process_questionnaires <- function(df) {
     wave_value <- 7
   }
 
-  # Recode missing identifiers as NA
+  # recode missing identifiers as NA
   df %<>%
     dplyr::mutate(across(where(is.numeric) & !dplyr::contains("ChildID") & !dplyr::contains("FamilyID") &
                            !dplyr::contains("ChildID"), ~ ifelse(. == 999, NA, .))) %>%
@@ -83,7 +105,7 @@ process_questionnaires <- function(df) {
       subjID = as.double(subjID),             # convert to double
       across(where(is.numeric), ~ ifelse(. == 999, NA, .))   # recode missing identifier as NA
     ) %>%
-    dplyr::select(subjID, everything()) # deselect unnecessary columns
+    dplyr::select(subjID, everything())       # deselect unnecessary columns
 
   df %<>%
     dplyr::filter(str_length(subjID) == 7) %>%        # remove rows with invalid participant IDs
@@ -95,8 +117,8 @@ process_questionnaires <- function(df) {
     dplyr::rename_with(~ stringr::str_replace(., "^mcc_", ""), dplyr::starts_with("mcc_")) %>%  # remove leading mcc
     dplyr::rename_with(~ stringr::str_replace(., "^MCC_", ""), dplyr::starts_with("MCC_"))      # remove leading MCC
 
+  #### EATQ-EC Subscale -----------------------------------------------------------------------------------------------------
 
-  ### EATQ-EC -------------------------------------------------------------------------------------------------------------
   if (wave_value == 7) { # EATQ Formatting Wave 7
 
     # items to be reversed
@@ -119,9 +141,9 @@ process_questionnaires <- function(df) {
       dplyr::mutate(eatq_ec_total = rowSums(dplyr::select(., dplyr::contains("EATQ_EC")), na.rm = FALSE))
   }
 
-  ### BIS/BAS -------------------------------------------------------------------------------------------------------------
-  bisbas_reverse_coded <- c("BISBAS_BIS_22_C", "BISBAS_BIS_2_C")
+  #### BISBAS scale ---------------------------------------------------------------------------------------------------------
 
+  bisbas_reverse_coded <- c("BISBAS_BIS_22_C", "BISBAS_BIS_2_C")
   # BISBAS Coding following below transformations
   # 1 = strongly disagree
   # 2 = disagree
@@ -168,14 +190,16 @@ process_questionnaires <- function(df) {
       )
   }
 
-  ### HSC -----------------------------------------------------------------------------------------------------------------------
+  #### HSC scale ------------------------------------------------------------------------------------------------------------
+
   df %<>%
     dplyr::mutate(across(dplyr::contains("HSCS"), ~ ifelse(. >= 5, . - 1, .)), # recode maximum
            hscs_total = rowSums(dplyr::select(., dplyr::contains("HSCS")), na.rm = FALSE)
     )
 
-  ### SDQ -----------------------------------------------------------------------------------------------------------------------
-  # Sample vector
+  #### SDQ scale -------------------------------------------------------------------------------------------------------------
+
+  # sample vector
   sdq_colnames <- c("w06_sdq_prosocial_q1_c","w06_sdq_hyper_q2_c","w06_sdq_emotional_q3_c","w06_sdq_prosocial_q4_c",
                     "w06_sdq_conduct_q5_c","w06_sdq_peer_q6_c","w06_sdq_conduct_q7_c","w06_sdq_emotional_q8_c",
                     "w06_sdq_prosocial_q9_c","w06_sdq_hyper_q10_c","w06_sdq_peer_q11_c","w06_sdq_conduct_q12_c",
@@ -183,8 +207,6 @@ process_questionnaires <- function(df) {
                     "w06_sdq_prosocial_q17_c","w06_sdq_conduct_q18_c","w06_sdq_peer_q19_c","w06_sdq_prosocial_q20_c",
                     "w06_sdq_hyper_q21_c","w06_sdq_conduct_q22_c","w06_sdq_peer_q23_c","w06_sdq_emotional_q24_c",
                     "w06_sdq_hyper_q25_c")
-
-
 
   if (wave_value == 7) { # SDQ Formatting Wave 7
 
@@ -203,23 +225,23 @@ process_questionnaires <- function(df) {
            sdq_int = rowSums(dplyr::select(., dplyr::contains("sdq_emotional") | dplyr::contains("sdq_peer")), na.rm = FALSE)
     )
 
+  #### CIUS scale -----------------------------------------------------------------------------------------------------------
 
-  ## CIUS Scale --------------------------------------------------------------------------------------------------------------- ##
   df %<>%
     dplyr::mutate(cius_total = rowSums(dplyr::select(., dplyr::contains("_SocialMedia_C")), na.rm = FALSE)) %>%
     dplyr::mutate(cius_total = ifelse(cius_total == 0, NA, cius_total))
 
-  ## Social Media ------------------------------------------------------------------------------------------------------------- ##
+  #### Social media measures ------------------------------------------------------------------------------------------------
 
   if (wave_value == 5) {
 
     df %<>%
       dplyr::rename(
-        w05_sm_video = w05_SocialMedia_B_1_C,         # watching video material
-        w05_sm_gaming = w05_SocialMedia_B_2_C,        # playing games
-        w05_sm_postandscroll = w05_SocialMedia_B_6_C, # posting or viewing public messages, photos or videos
-        w05_sm_messaging = w05_SocialMedia_B_7_C,     # sending or viewing private messages or photos
-        w05_sm_videocall = w05_SocialMedia_B_8_C      # phone calls or video calls
+        w05_sm_video = w05_SocialMedia_B_1_C,            # watching video material
+        w05_sm_gaming = w05_SocialMedia_B_2_C,           # playing games
+        w05_sm_postandscroll = w05_SocialMedia_B_6_C,    # posting or viewing public messages, photos or videos
+        w05_sm_messaging = w05_SocialMedia_B_7_C,        # sending or viewing private messages or photos
+        w05_sm_videocall = w05_SocialMedia_B_8_C         # phone calls or video calls
       ) %>%
       dplyr::mutate(                                     # 0 = none
         w05_sm_video = w05_sm_video - 1,                 # 1 = 0-1h
@@ -238,14 +260,14 @@ process_questionnaires <- function(df) {
         w06_sm_gaming = w06_SocialMedia_B_2_Child,        # playing games
         w06_sm_postandscroll = w06_SocialMedia_B_6_Child, # posting or viewing public messages, photos or videos
         w06_sm_messaging = w06_SocialMedia_B_7_Child,     # sending or viewing private messages or photos
-        w06_sm_videocall = w06_SocialMedia_B_8_Child     # phone calls or video calls
+        w06_sm_videocall = w06_SocialMedia_B_8_Child      # phone calls or video calls
       ) %>%
       dplyr::mutate( # 0 = none
-        w06_sm_video = w06_sm_video - 1,                 # 1 = 0-1h
-        w06_sm_gaming = w06_sm_gaming - 1,               # 2 = 1-2h
-        w06_sm_postandscroll = w06_sm_postandscroll - 1, # 3 = 2-3h
-        w06_sm_messaging = w06_sm_messaging - 1,         # 4 = 3-4h
-        w06_sm_videocall = w06_sm_videocall - 1,         # 5 = 4+h
+        w06_sm_video = w06_sm_video - 1,                  # 1 = 0-1h
+        w06_sm_gaming = w06_sm_gaming - 1,                # 2 = 1-2h
+        w06_sm_postandscroll = w06_sm_postandscroll - 1,  # 3 = 2-3h
+        w06_sm_messaging = w06_sm_messaging - 1,          # 4 = 3-4h
+        w06_sm_videocall = w06_sm_videocall - 1,          # 5 = 4+h
         w06_sm_total = w06_sm_video + w06_sm_messaging + w06_sm_videocall + w06_sm_postandscroll
       )
 
@@ -253,11 +275,11 @@ process_questionnaires <- function(df) {
 
     df %<>%
       dplyr::rename(
-        w07_sm_video = w07_Media_Q5_1,          # watching video material
-        w07_sm_gaming = w07_Media_Q5_2,         # playing games
-        w07_sm_postandscroll = w07_Media_Q5_6,  # posting or viewing public messages, photos or videos
-        w07_sm_messaging = w07_Media_Q5_7,      # sending or viewing private messages or photos
-        w07_sm_videocall = w07_Media_Q5_8       # phone calls or video calls
+        w07_sm_video = w07_Media_Q5_1,                   # watching video material
+        w07_sm_gaming = w07_Media_Q5_2,                  # playing games
+        w07_sm_postandscroll = w07_Media_Q5_6,           # posting or viewing public messages, photos or videos
+        w07_sm_messaging = w07_Media_Q5_7,               # sending or viewing private messages or photos
+        w07_sm_videocall = w07_Media_Q5_8                # phone calls or video calls
       ) %>%
       dplyr::mutate( # 0 = none
         w07_sm_video = w07_sm_video - 1,                 # 1 = 0-1h
@@ -269,7 +291,8 @@ process_questionnaires <- function(df) {
       )
   }
 
-  ## Pubertal Development Scale ----------------------------------------------------------------------------------------------- ##
+  #### Pubertal development scale -------------------------------------------------------------------------------------------
+
   if (wave_value == 5) { # PDS Formatting Wave 5
 
     df %<>%
@@ -350,12 +373,13 @@ process_questionnaires <- function(df) {
       ungroup()
   }
 
+  ### Wave 6 and 7 exclusive questionnaires ---------------------------------------------------------------------------------
 
-  ## Wave 6 and 7 Exclusive Questionnaires -------------------------------------------------------------------------------------
   if (wave_value >= 6) {
 
-    ### BSI -----------------------------------------------------------------------------------------------------------------------
+    #### BSI scale ----------------------------------------------------------------------------------------------------------
     # Wildman items = Wildman symptom checklist to assess non-credible symptoms
+
     df %<>%
       dplyr::mutate(
         bsi_total = rowSums(dplyr::select(., dplyr::contains("BSI") & !dplyr::contains("Wildman")), na.rm = FALSE),
@@ -369,12 +393,13 @@ process_questionnaires <- function(df) {
   return(df)
 }
 
-# PROCESS DATA AND SAVE --------------------------------------------------------------------------------------------------------------
+## PROCESS DATA =============================================================================================================
+
 dat_q05_processed <- process_questionnaires(dat_q05)
 dat_q06_processed <- process_questionnaires(dat_q06)
 dat_q07_processed <- process_questionnaires(dat_q07)
 
-# Replace empty character strings with NA
+# replace empty character strings with NA
 dat_q05_processed %<>%
   dplyr::mutate(across(where(is.character), ~na_if(.x, ""))) %>%
   dplyr::mutate(across(where(is.factor), ~na_if(as.character(.x), ""))) %>%
@@ -393,7 +418,8 @@ dat_q07_processed %<>%
   dplyr::mutate(across(where(is.character), as.character)) %>%
   dplyr::mutate(across(where(is.factor), as.factor))
 
-## Check missings ------------------------------------------------------------------------------------------------------------- ##
+### Check Missing -----------------------------------------------------------------------------------------------------------
+
 dat_q05_processed %>%
   summarise_all(~ sum(!is.na(.))) %>%
   select_if(~ . <= 10) %>%
@@ -409,7 +435,9 @@ dat_q07_processed %>%
   select_if(~ . <= 10) %>%
   names()
 
-# COMBINE DATAFRAMES --------------------------------------------------------------------------------------------------------
+### Combine Dataframes ------------------------------------------------------------------------------------------------------
+
+# variables to retain for wave 5
 varofinterest_q05 <- c(
   "subjID","FamilyID","ChildNr","Sex_Child_Dummy01","w05_sm_video","w05_sm_gaming","w05_sm_postandscroll","w05_sm_messaging",
   "w05_sm_videocall","w05_sm_total","w05_PDS_1_C","w05_PDS_2_C","w05_PDS_3_C","w05_PDS_Boys_4_C","w05_PDS_Boys_5_C",
@@ -417,6 +445,7 @@ varofinterest_q05 <- c(
   "hscs_total","sdq_total","sdq_int","sdq_ext","cius_total"
 )
 
+# variables to retain for wave 6
 varofinterest_q06 <- c(
   "subjID", "w06_sm_video", "w06_sm_gaming", "w06_sm_postandscroll", "w06_sm_messaging","w06_sm_videocall", "w06_sm_total",
   "w06_PDS_1_Child", "w06_PDS_2_Child", "w06_PDS_3_Child","w06_PDS_Boys_4_Chil", "w06_PDS_Boys_5_Chil", "w06_PDS_Girls_4_Chi",
@@ -424,6 +453,7 @@ varofinterest_q06 <- c(
   "sdq_total","sdq_int","sdq_ext", "cius_total", "bsi_total", "bsi_depression", "bsi_anxiety","bsi_sensitivity", "bsi_hostility", "bsi_wildman_check"
 )
 
+# variables to retain for wave 7
 varofinterest_q07 <- c(
   "subjID","Diagnosis_Q1","Diagnosis_Q3","Diagnosis_Q4","Diagnosis_Q5","w07_PDS_Q1","w07_PDS_Q2","w07_PDS_Q3","w07_PDS_Boys_Q1",
   "w07_PDS_Boys_Q2","w07_PDS_Girls_Q1","w07_PDS_Girls_Q2","w07_PDS_total","w07_sm_video","w07_sm_gaming",
@@ -432,6 +462,7 @@ varofinterest_q07 <- c(
   "bsi_wildman_check"
 )
 
+# remove variables from dataset
 dat_q05_processed %<>%
   dplyr::select(all_of(varofinterest_q05)) %>%
   dplyr::rename(
@@ -448,6 +479,7 @@ dat_q05_processed %<>%
   ) %>%
   dplyr::rename_all(~ ifelse(. != "subjID" & !grepl("^w05_", .), paste0("w05_", .), .))
 
+# remove variables from dataset
 dat_q06_processed %<>%
   dplyr::select(all_of(varofinterest_q06)) %>%
   dplyr::rename(
@@ -462,6 +494,7 @@ dat_q06_processed %<>%
   ) %>%
   dplyr::rename_all(~ ifelse(. != "subjID" & !grepl("^w06_", .), paste0("w06_", .), .))
 
+# remove variables from dataset
 dat_q07_processed %<>%
   dplyr::select(all_of(varofinterest_q07)) %>%
   dplyr::rename(
@@ -486,24 +519,27 @@ dat_q07_processed %<>%
   ) %>%
   dplyr::rename_all(~ ifelse(. != "subjID" & !grepl("^w07_", .), paste0("w07_", .), .))
 
+# merge questionnaire datasets
 dat_main_processed <- dat_q05_processed %>%
   dplyr::left_join(dat_q06_processed, by = "subjID") %>%
   dplyr::left_join(dat_q07_processed, by = "subjID")
 
+# merge questionnaire and demographic datasets
 dat_merged_processed <- dat_q05_processed %>%
   dplyr::left_join(dat_q06_processed, by = "subjID") %>%
   dplyr::left_join(dat_q07_processed, by = "subjID") %>%
   dplyr::left_join(dat_demographics, by = "subjID")
 
-# SAVE RESULTS --------------------------------------------------------------------------------------------------------------
-readr::write_csv(dat_q05_processed, file = here("data", "lcid","processed", "questionnaires_w05.csv"))
-readr::write_csv(dat_q06_processed, file = here("data", "lcid", "processed", "questionnaire_w06.csv"))
-readr::write_csv(dat_q07_processed, file = here("data", "lcid", "processed", "questionnaire_w07.csv"))
-readr::write_csv(dat_main_processed, file = here("data", "lcid", "processed", "questionnaire_all.csv"))
-readr::write_csv(dat_merged_processed, file = here("data", "lcid", "processed", "masterfile.csv"))
+## SAVE RESULTS =============================================================================================================
 
+readr::write_csv(dat_q05_processed, file = here("data","processed", "questionnaires_w05.csv"))
+readr::write_csv(dat_q06_processed, file = here("data", "processed", "questionnaire_w06.csv"))
+readr::write_csv(dat_q07_processed, file = here("data", "processed", "questionnaire_w07.csv"))
+readr::write_csv(dat_main_processed, file = here("data", "processed", "questionnaire_all.csv"))
+readr::write_csv(dat_merged_processed, file = here("data", "processed", "masterfile.csv"))
 
-# DEMOGRAPHICS --------------------------------------------------------------------------------------------------------------
+## ADD DEMOGRAPHICS =========================================================================================================
+
 dat_merged_long <- dat_merged_processed %>%
   pivot_longer(
     cols = contains("w0"),
@@ -515,10 +551,7 @@ dat_merged_long <- dat_merged_processed %>%
   arrange(subjID, wave) %>%
   select(subjID, wave, everything())
 
-library(dplyr)
-library(janitor) # For the 'tabyl' function
-
-# Generate descriptive statistics table for demographics
+# generate descriptive statistics table for demographics
 demographics_summary <- dat_merged_long %>%
   filter(wave == 1) %>%
   summarise(
@@ -527,19 +560,19 @@ demographics_summary <- dat_merged_long %>%
     Sex_Male = sum(sex_c == 0, na.rm = TRUE),
     Sex_Missing = sum(is.na(sex_c)),
 
-    # Age statistics
+    # age statistics
     Age_Mean = mean(age_c, na.rm = TRUE),
     Age_SD = sd(age_c, na.rm = TRUE),
     Age_Min = min(age_c, na.rm = TRUE),
     Age_Max = max(age_c, na.rm = TRUE),
 
-    # Handedness distribution
+    # handedness distribution
     Handedness_Right = sum(handedness_c == 1, na.rm = TRUE),
     Handedness_Left = sum(handedness_c == 2, na.rm = TRUE),
     Handedness_Ambidextrous = sum(handedness_c == 3, na.rm = TRUE),
     Handedness_Missing = sum(is.na(handedness_c)),
 
-    # Ethnicity distribution
+    # ethnicity distribution
     Ethnicity_Caucasian = sum(ethnicity_c == 1, na.rm = TRUE),
     Ethnicity_Other = sum(ethnicity_c != 1 & !is.na(ethnicity_c), na.rm = TRUE),
     Ethnicity_Missing = sum(is.na(ethnicity_c)),
@@ -551,10 +584,12 @@ demographics_summary <- dat_merged_long %>%
     SES_Missing = sum(is.na(ses))
   )
 
-# Print the summary table
+# print the summary table
 print(demographics_summary)
 
-# VISUALISE -----------------------------------------------------------------------------------------------------------------
+## VISUALISE DATA ===========================================================================================================
+
+# generator vector with included participants at each wave
 inclusion_vector <- c(
   sum(dat_demographics$w01_participation), sum(dat_demographics$w02_participation),
   sum(dat_demographics$w03_participation), sum(dat_demographics$w04_participation),
@@ -562,27 +597,28 @@ inclusion_vector <- c(
   sum(dat_demographics$w07_participation)
 )
 
-# LCID dataset inclusions
+# create tibble for visualising sample size
 inclusion_lcid <- tibble(dataset = rep("lcid", 7), as.numeric(c(1:7)), inclusion_vector) %>%
   dplyr::rename(wave = 2, subjects = 3)
 
-# Identity barchart for inclusions at each wave
+# identity barchart for inclusions at each wave
 lcid_plot <- inclusion_lcid %>%
   ggplot(., aes(fill = wave, y = subjects, x = wave)) +
   geom_bar(position = "dodge", stat = "identity", width = .70, show.legend = FALSE) +
   geom_text(aes(label = subjects), position = position_dodge(width = 1),
-            vjust = -.3, size = 4, colour = "#5D5D5D") +
+            vjust = -.3, size = 3.5, colour = "#5D5D5D", family = "sans", fontface = "italic") +
   scale_x_continuous(breaks = c(1:7)) +
   plot_theme +
   aspect_ratio_balanced +
   scale_y_continuous(expand = expansion(mult = c(0, 0.1)),
                      limits = c(0, 600),
                      breaks = seq(0, 600, 100)) +
-  theme(text = element_text(size = 15, family = "sans")) +
+  theme(text = element_text(size = 12, family = "sans"),
+        axis.text = element_text(size = 12, family = "sans")) +
   labs(y = "Participants", x = "Wave") +
   scale_fill_viridis(option = "viridis", direction = 1, begin = .05, end = .95) +
   theme(axis.ticks.x = element_blank()) +
   annotate(geom = "segment", x = -Inf, xend = -Inf, y = 0, yend = 600)
 
 # save plot to working directory
-ggsave(here("output", "lcid", "lcid_sample.png"), dpi = 1200)
+ggplot2::ggsave(here("output", "sample", "lcid_samplesize.png"), dpi = 1200)
