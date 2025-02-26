@@ -1,11 +1,11 @@
-## ============================================================================================================================
+## ======================================================================================================================= ##
 ## Script:       MODEL DELAY DISCOUNTING HYPERBOLIC FUNCTION
-## ============================================================================================================================ ##
+## ======================================================================================================================= ##
 ## Authors:      Lukas Gunschera
 ## Contact:      l.gunschera@outlook.com
 ##
 ## Date created: 2024-07-12
-## ============================================================================================================================ ##
+## ======================================================================================================================= ##
 ##
 ## Prior to executing this script ensure to set parameters FIT_MODEL, FIT_ALLDATA, and FIT_CLUSTER to appropriate values.
 ## FIT_MODEL set to true executes script, set to false skips model fitting.
@@ -14,7 +14,7 @@
 ##
 ## Importantly, FIT_CLUSTER == TRUE is hard-coded and may require changes to path for the stan executable.
 ##
-## ============================================================================================================================ ##
+## ======================================================================================================================= ##
 
 ## SETUP ====================================================================================================================
 
@@ -266,14 +266,12 @@ rhat_values[which.max(abs(rhat_values))]
 min(dd_hyperbo_check_02$ess[[1]], dd_hyperbo_check_03$ess[[1]], dd_hyperbo_check_04$ess[[1]],
     dd_hyperbo_check_05$ess[[1]], dd_hyperbo_check_06$ess[[1]])
 
-
-# EXAMINE POSTERIOR PREDICTIVES ---------------------------------------------------------------------------------------------
-
-ppc02 <- readRDS(here::here("output", "lcid", "dd_delaydiscount", "modelfit", "dd_hyperbolic", "wave2", "dd_hyperbo_ppc_02.RDS"))
-ppc03 <- readRDS(here::here("output", "lcid", "dd_delaydiscount", "modelfit", "dd_hyperbolic", "wave3", "dd_hyperbo_ppc_03.RDS"))
-ppc04 <- readRDS(here::here("output", "lcid", "dd_delaydiscount", "modelfit", "dd_hyperbolic", "wave4", "dd_hyperbo_ppc_04.RDS"))
-ppc05 <- readRDS(here::here("output", "lcid", "dd_delaydiscount", "modelfit", "dd_hyperbolic", "wave5", "dd_hyperbo_ppc_05.RDS"))
-ppc06 <- readRDS(here::here("output", "lcid", "dd_delaydiscount", "modelfit", "dd_hyperbolic", "wave6", "dd_hyperbo_ppc_06.RDS"))
+### Examine Posterior Predictives -------------------------------------------------------------------------------------------
+ppc02 <- readRDS(here::here("output", "modelfit", "dd_hyperbo_ppc_02.RDS"))
+ppc03 <- readRDS(here::here("output", "modelfit", "dd_hyperbo_ppc_03.RDS"))
+ppc04 <- readRDS(here::here("output", "modelfit", "dd_hyperbo_ppc_04.RDS"))
+ppc05 <- readRDS(here::here("output", "modelfit", "dd_hyperbo_ppc_05.RDS"))
+ppc06 <- readRDS(here::here("output", "modelfit", "dd_hyperbo_ppc_06.RDS"))
 
 cor(ppc02$mean_pred_choice, ppc02$mean_real_choice);
 cor(ppc03$mean_pred_choice, ppc03$mean_real_choice);
@@ -282,38 +280,36 @@ cor(ppc05$mean_pred_choice, ppc05$mean_real_choice);
 cor(ppc06$mean_pred_choice, ppc06$mean_real_choice);
 
 ppc02 %>%
-  group_by(real_delay_later) %>%
-  summarise(correlation = cor(mean_pred_choice, mean_real_choice))
+  dplyr::group_by(real_delay_later) %>%
+  dplyr::summarise(correlation = cor(mean_pred_choice, mean_real_choice))
 
 ppc03 %>%
-  group_by(real_delay_later) %>%
-  summarise(correlation = cor(mean_pred_choice, mean_real_choice))
+  dplyr::group_by(real_delay_later) %>%
+  dplyr::summarise(correlation = cor(mean_pred_choice, mean_real_choice))
 
 ppc04 %>%
-  group_by(real_delay_later) %>%
-  summarise(correlation = cor(mean_pred_choice, mean_real_choice))
+  dplyr::group_by(real_delay_later) %>%
+  dplyr::summarise(correlation = cor(mean_pred_choice, mean_real_choice))
 
 ppc05 %>%
-  group_by(real_delay_later) %>%
-  summarise(correlation = cor(mean_pred_choice, mean_real_choice))
+  dplyr::group_by(real_delay_later) %>%
+  dplyr::summarise(correlation = cor(mean_pred_choice, mean_real_choice))
 
 ppc06 %>%
-  group_by(real_delay_later) %>%
-  summarise(correlation = cor(mean_pred_choice, mean_real_choice))
+  dplyr::group_by(real_delay_later) %>%
+  dplyr::summarise(correlation = cor(mean_pred_choice, mean_real_choice))
 
-## ============================================================================================================================ ##
-## DESCRIPTIVES FOR DELAY DISCOUNTING DATA
-## ============================================================================================================================ ##
+## DESCRIPTIVES =============================================================================================================
 
 data_list <- list(task_data_02, task_data_03, task_data_04, task_data_05, task_data_06)
 
 # get the acceptance proportion for entire task (average of participants)
 prop_accept <- map(data_list, ~ .x %>%
       group_by(subjID) %>%
-      summarise(
+      dplyr::summarise(
         prop_accept = mean(choice)
       ) %>%
-      summarise(
+      dplyr::summarise(
         mean_accept = format(mean(prop_accept), nsmall = 5),
         sd_accept = format(sd(prop_accept), nsmall = 5)
       ))
@@ -321,14 +317,14 @@ prop_accept <- map(data_list, ~ .x %>%
 # get the acceptance proportion for bins within task
 prop_accept_bins <- map(data_list, ~ .x %>%
   ungroup() %>%
-  mutate(v_diff = amount_later - amount_sooner,
+  dplyr::mutate(v_diff = amount_later - amount_sooner,
          v_diff_bin = ntile(v_diff, 4)) %>%
-  group_by(v_diff_bin) %>%
-  summarise(
+  dplyr::group_by(v_diff_bin) %>%
+  dplyr::summarise(
     prop_accept = format(mean(choice), nsmall = 5)
   ))
 
 # above trend can be explained by negative association between sooner offer size and delay later
-map(data_list, ~ .x %>%
+purrr::map(data_list, ~ .x %>%
       ungroup() %>%
-      summarise(v_corr = format(cor(x = amount_sooner, y = delay_later), nsmall = 5)))
+      dplyr::summarise(v_corr = format(cor(x = amount_sooner, y = delay_later), nsmall = 5)))
