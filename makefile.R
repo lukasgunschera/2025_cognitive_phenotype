@@ -1,63 +1,50 @@
-## ============================================================================================================================ ##
-## Script:    Dependencies Installation
-## ============================================================================================================================ ##
-## Authors:   Lukas J. Gunschera
-## Date:      Wed Apr  3 12:08:10 2024
-## ============================================================================================================================ ##
-## Install all dependencies of scripts contained in lcid_cognitive_phenotype
-## [script needs to be run only once]
-## ============================================================================================================================ ##
+## ======================================================================================================================= ##
+## Script:       MAKEFILE
+## ======================================================================================================================= ##
+## Authors:      Lukas Gunschera
+## Contact:      l.gunschera@outlook.com
+##
+## Date created: 2025-02-10
+## ======================================================================================================================= ##
+##
+## This script contains detailed instructions on how to execute the code of the project folder. Please ensure to keep to the
+## below instructions to reproduce the results of the project.
+##
+## Unfortunately, we do not have the right to share the data acccompanying this work. The data can be obtained from the
+## Leiden Consortium on Individual Development team (https://www.developmentmatters.nl/).
+##
+## ======================================================================================================================= ##
 
-## Note: Before running command scripts, the current working directory must be set to the top-level
-## folder containing the dmc, code, and data subfolders
+## DEPENDENCIES =============================================================================================================
+# [please note that executing the below code will install software on your computer]
+# [please ensure to have the necessary rights to install software on your computer]
 
-## ============================================================================================================================ ##
-## Dependencies
-## ============================================================================================================================ ##
+install.packages("renv")
+renv::init() # (1) restore the project from the lockfile
 
-# Depedencies
-install.packages("backports")
-install.packages("expm")
-install.packages("evd")
-install.packages("contfrac")
-install.packages("deSolve")
-install.packages("Rcpp")
-install.packages("gsl")
-install.packages("ps")
-install.packages("processx")
-install.packages("colorspace")
-install.packages("scales")
-install.packages("glue")
-install.packages("tibble")
-install.packages("stringi")
 
-# Standard packages from CRAN
-install.packages("truncdist") # truncated t etc.
-install.packages("msm")  # For truncated normal priors
-install.packages("loo") # For WAIC and looaic calculation
-install.packages("hypergeo") # For population plausible values
-install.packages("statmod") # Wald model
-install.packages("rtdists") # For standard model distribution functions
-install.packages("pracma")  # For gng and stop signal robust integration
-install.packages("snowfall") # Parallel processing
-install.packages("rlecuyer") # Parallel processing
-install.packages("numDeriv") # Prior transformations
-install.packages("vioplot") # Stop signal graphs
-install.packages("ggplot2") # For fancy graphs
-install.packages("gridExtra") # For fancy graphs
-install.packages("mvtnorm") # For Bayes Factors
-install.packages("Matrix") # For Bayes Factors
-install.packages("Brobdingnag") # For Bayes Factors
-install.packages("stringr") # For Bayes Factors
-install.packages("LaplacesDemon") # For multivariate Cauchy
-install.packages("Brobdingnag")
-
-# This modificaiton of coda allows for plotting of priors with plot.dmc
-install.packages("dmc/packages/coda_0.19-3.tar.gz",repos=NULL,type="source")
-
-# Run the below to ensure availability of font types for visual outputs
 install.packages("extrafont")
 library(extrafont)
 extrafont::font_import()
+
+# install cmdstanr to for model fitting in stan
+remotes::install_github("stan-dev/cmdstanr")
+
+# install hBayesDM for model fitting in stan
+install.packages("hBayesDM", dependencies = TRUE)
+
+## CLUSTER ==================================================================================================================
+# Many of the project scripts contain computationally intensive tasks. To manage the computational load we have executed
+# the relevant scripts on a local computing cluster. Fitting the scripts on the cluster is managed via the 'FIT_CLUSTER'
+# global parameter. Please note, the present code will not work across clusters and may require substantial modifications.
+
+
+## CODE STRUCTURE ===========================================================================================================
+
+# (1) code/lcid_preprocessing.R
+# This script contains all preprocessing steps applied to the raw questionnaire and demographic data.
+
+# (2) code/lcid_parameter_recovery.R
+# This script contains all steps to perform the parameter recovery for the hyperbolic model in stan.
 
 
