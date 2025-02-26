@@ -7,29 +7,52 @@
 ##
 ## ============================================================================================================================ ##
 
-rm(list = ls())
-set.seed(777)
+## SETUP ====================================================================================================================
 
-## ============================================================================================================================ ##
-# SCRIPT SETUP --------------------------------------------------------------------------------------------------------------
-## ============================================================================================================================ ##
+library(renv)
+renv::restore()
 
-required_packages <- c("ggplot2","here","dplyr","magrittr","purrr","readr","stringr","viridisLite","haven","tidyr","psych","PupillometryR","validate","errorlocate")
+set.seed(777) # set seed for random processes
 
-invisible(lapply(required_packages, library, character.only = TRUE))
-rm(required_packages)
+# load required packages
+library(here)
+library(purrr)
+library(psych)
+library(readr)
+library(haven)
+library(tidyr)
+library(dplyr)
+library(ggplot2)
+library(ggpmisc)
+library(viridis)
+library(validate)
+library(magrittr)
+library(patchwork)
+library(ggcorrplot)
+library(errorlocate)
+library(viridisLite)
+library(PupillometryR)
 
-here::i_am("README.md")     # set parent directory to README.md file of project
-here::here()
+# set global parameters determining the model fitting process
+FIT_MODEL   <- TRUE     # TRUE will fit model to data, FALSE will skip model fitting
+FIT_ALLDATA <- TRUE     # TRUE will fit model to all participants, FALSE will fit model to a subset of participants
+FIT_CLUSTER <- FALSE    # TRUE will fit model on high performance computing cluster (hard-coded and may require adjustments)
 
-source(here("code", "lcid_delaydiscount", "functions", "fun_plots.R"))
-source(here("code", "lcid_delaydiscount", "functions", "fun_helper.R"))
-source(here("code", "lcid_delaydiscount", "functions", "fun_convergence_check.R"))
+ITER_WARMUP <- 2000     # Set warm up iterations for later models
+ITER_SAMPLING <- 10000  # Set sampling iterations for later models
+
+NUM_CORES <- parallel::detectCores() - 1  # Set cores to use for computation
+
+# set directory
+here::i_am("renv.lock") # set directory
+
+# load custom functions
+source(here::here("code", "functions", "fun_plots.R"))
+source(here::here("code", "functions", "fun_helper.R"))
+source(here::here("code", "functions", "fun_convergence_check.R"))
 source(here("code", "lcid_delaydiscount", "functions", "fun_load_model_results.R"))
 
-## ============================================================================================================================ ##
-# LOAD PROCESSED DATA -------------------------------------------------------------------------------------------------------
-## ============================================================================================================================ ##
+## LOAD PROCESSED DATA ======================================================================================================
 # dd_data             = contains behavioural task data (list)
 # dd_w02 ... dd_w06   = contains behavioural task data for each wave (df)
 # datq05 ... datq07   = contains questionnaire results (processed in lcid_dd_preprocessing.R) (df)
@@ -38,6 +61,7 @@ source(here("code", "lcid_delaydiscount", "functions", "fun_load_model_results.R
 # dat_master          = contains merged questionnaire and demographics data (df)
 # mod_results         = contains dataframes of each measurement wave model parameters (list)
 
+### Behavioural task data ---------------------------------------------------------------------------------------------------
 ## Behavioural Task Data ------------------------------------------------------------------------------------------------------ ##
 dd_data <- readRDS(here("data", "lcid", "dd_delaydiscount", "processed", "dd_task_nonzero.Rds"))
 dd_w02 <- dd_data[[1]]; dd_w03 <- dd_data[[2]]; dd_w04 <- dd_data[[3]]; dd_w05 <- dd_data[[4]]; dd_w06 <- dd_data[[5]]

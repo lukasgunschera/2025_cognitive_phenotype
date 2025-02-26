@@ -57,3 +57,6 @@ install.packages("hBayesDM", dependencies = TRUE)
 # (5) code/lcid_posterior_predictive.R
 # This script contains all steps to examine the posterior predictive checks for the hyperbolic model in stan.
 
+# (6) code/lcid_postprocessing.R
+# This script combines outputs from the previous modeling, and processing of data and creates a combined datafile that will
+# be used for later analyses and visualisations.
