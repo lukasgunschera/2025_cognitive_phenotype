@@ -47,4 +47,13 @@ install.packages("hBayesDM", dependencies = TRUE)
 # (2) code/lcid_parameter_recovery.R
 # This script contains all steps to perform the parameter recovery for the hyperbolic model in stan.
 
+# (3) code/lcid_preprocessing_task.R
+# This script performs all preprocessing operations on the behavioural task data of the monetary delay discounting task. The
+# file returns the object 'dd_task.Rds' which is used in subsequent modeling steps.
+
+# (4) code/modeling.R
+# This script fits the hyperbolic delay discounting model in stan using cmdstanr and hBayesDM.
+
+# (5) code/lcid_posterior_predictive.R
+# This script contains all steps to examine the posterior predictive checks for the hyperbolic model in stan.
 
