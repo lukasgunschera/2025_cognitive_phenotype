@@ -1,0 +1,1097 @@
+Mplus VERSION 8.9
+MUTHEN & MUTHEN
+10/21/2024   9:27 AM
+
+INPUT INSTRUCTIONS
+
+  TITLE: RI-CLPM for LCID Social Media and Temperament Data
+
+  DATA:
+      FILE = "C:\Users\lg05\ownCloud - Lukas Gunschera@cloud.mrc-cbu.cam.ac.uk\
+      dmh_lukas\projects\2024_cognitive_phenotype\data\lcid\mplus\
+      dd_delaydiscount\lcid_baseline_eatq.dat";
+
+  VARIABLE:
+      !variables included in the dataset
+      NAMES ARE smt5 smt6 smt7         !social media use total
+                 smp5 smp6 smp7         !social media use posting and scrolling
+                 smm5 smm6 smm7         !social media use messaging
+                 smv5 smv6 smv7         !social media use video watching
+                 eat5 eat6 eat7         !eatq-ec total
+                 bis5 bis6 bis7         !bis/bas behavioural inhibition
+                 bas5 bas6 bas7         !bis/bas behavioural activation
+                 bbt5 bbt6 bbt7         !bis/bas total
+                 hsc5 hsc6 hsc7         !highly sensitive child scale total
+                 sdq5 sdq6 sdq7         !strengths and difficulties total
+
+                 csm5 csm6              !compulsive social media use [aux]
+                 sex ses edu1           !demographics [aux]
+                 bsi6 bsi7              !brief symptom inventory total [aux]
+                 bsid6 bsid7            !brief symptom inventory depression [aux]
+                 bsia6 bsia7            !brief symptom inventory anxiety [aux]
+                 pdsi2 pds5 pds6 pds7;  !pubertal development score [aux]
+
+      !variables used in analyses
+      USEVARIABLES ARE smp5 smp6 smp7
+                       eat5 eat6 eat7;
+
+      !missingness marker in dataset
+      MISSING ARE ALL (-999);
+
+      AUXILIARY ARE csm5 csm6 sex ses edu1
+                    bsi6 bsi7 bsid6 bsid7 bsia6 bsia7
+                    pdsi2 pds5 pds6 pds7;
+
+  ANALYSIS:
+      Estimator = BAYES;
+      Type = random;          !required when including interaction effects
+      model = nocovariances;  !covariances should not be estimated per default
+      processors = 2;         !multiple processors used to increase computing speed
+      chains = 2;             !number of MCMC chains
+      thin = 10;              !save every 10th iteration
+
+      fbiter = 10000;          !PSR <1.1 at 1100 iterations (10000 minimum applied)
+
+  MODEL:
+      !Create between components (random intercepts)
+      RIsm BY smp5@1 smp6@1 smp7@1;
+      RImh BY eat5@1 eat6@1 eat7@1;
+
+      !Create within-person centred variables
+      wsm_5 BY smp5@1;
+      wsm_6 BY smp6@1;
+      wsm_7 BY smp7@1;
+
+      wmh_5 BY eat5@1;
+      wmh_6 BY eat6@1;
+      wmh_7 BY eat7@1;
+
+      !Constrain measurement error variances to zero
+      !or close to zero to allow for reasonable imputation times
+      smp5-eat7@0.2; !subtraction opposite to Lydia's script?
+      !eatq5-sm7@0.2; !this order aligns with Lydia's script but error
+
+      !Estimate the lagged effects between the within-person centred variables
+      wsm_7 ON wsm_6 wmh_6;
+      wmh_7 ON wsm_6 wmh_6;
+
+      wsm_6 ON wsm_5 wmh_5;
+      wmh_6 ON wmh_5 wmh_5;
+
+      !Estimate covariance between random intercepts
+      RIsm WITH RImh;
+
+      !Estimate the covariance between the within-person
+      !components at the first wave
+      wmh_5 WITH wsm_5;
+
+      !Estimate the covariances between the residuals of
+      !the within-person components
+      wmh_6 WITH wsm_6;
+      wmh_7 WITH wsm_7;
+
+  OUTPUT:
+      TECH8; !required to examine PSR values
+      STDYX; !get standardised output
+
+  SAVEDATA:
+      FILE = dd_baseline_bisbas.dat;
+      SAVE = FSCORES(100,10);
+      FORMAT = free;
+
+      RESULTS = dd_baseline_bisbas_results.dat;
+      SAVE = FSCORES(100,10);
+      FORMAT = free;
+
+
+
+INPUT READING TERMINATED NORMALLY
+
+
+
+RI-CLPM for LCID Social Media and Temperament Data
+
+SUMMARY OF ANALYSIS
+
+Number of groups                                                 1
+Number of observations                                         334
+
+Number of dependent variables                                    6
+Number of independent variables                                  0
+Number of continuous latent variables                            8
+
+Observed dependent variables
+
+  Continuous
+   SMP5        SMP6        SMP7        EAT5        EAT6        EAT7
+
+Observed auxiliary variables
+   CSM5        CSM6        SEX         SES         EDU1        BSI6
+   BSI7        BSID6       BSID7       BSIA6       BSIA7       PDSI2
+   PDS5        PDS6        PDS7
+
+Continuous latent variables
+   RISM        RIMH        WSM_5       WSM_6       WSM_7       WMH_5
+   WMH_6       WMH_7
+
+
+Estimator                                                    BAYES
+Specifications for Bayesian Estimation
+  Point estimate                                            MEDIAN
+  Number of Markov chain Monte Carlo (MCMC) chains               2
+  Random seed for the first chain                                0
+  Starting value information                           UNPERTURBED
+  Algorithm used for Markov chain Monte Carlo           GIBBS(PX1)
+  Fixed number of iterations                                 10000
+  K-th iteration used for thinning                              10
+Specifications for Bayes Factor Score Estimation
+  Number of imputed data sets                                  100
+  Iteration intervals for thinning                              10
+
+Input data file(s)
+  C:\Users\lg05\ownCloud - Lukas Gunschera@cloud.mrc-cbu.cam.ac.uk\dmh_lukas\pro
+Input data format  FREE
+
+
+SUMMARY OF DATA
+
+
+
+SUMMARY OF MISSING DATA PATTERNS
+
+     Number of missing data patterns             9
+
+
+     MISSING DATA PATTERNS (x = not missing)
+
+           1  2  3  4  5  6  7  8  9
+ SMP5      x  x        x  x  x
+ SMP6      x  x  x  x           x  x
+ SMP7      x        x     x  x     x
+ EAT5      x  x        x  x  x  x  x
+ EAT6      x  x  x  x        x  x  x
+ EAT7      x        x     x  x     x
+
+
+     MISSING DATA PATTERN FREQUENCIES
+
+    Pattern   Frequency     Pattern   Frequency     Pattern   Frequency
+          1         125           4           3           7           3
+          2         137           5          34           8           1
+          3           2           6          28           9           1
+
+
+COVARIANCE COVERAGE OF DATA
+
+Minimum covariance coverage value   0.100
+
+
+     PROPORTION OF DATA PRESENT
+
+
+           Covariance Coverage
+              SMP5          SMP6          SMP7          EAT5          EAT6
+              ________      ________      ________      ________      ________
+ SMP5           0.979
+ SMP6           0.784         0.805
+ SMP7           0.467         0.386         0.479
+ EAT5           0.979         0.790         0.470         0.985
+ EAT6           0.793         0.805         0.395         0.799         0.814
+ EAT7           0.467         0.386         0.479         0.470         0.395
+
+
+           Covariance Coverage
+              EAT7
+              ________
+ EAT7           0.479
+
+
+
+UNIVARIATE SAMPLE STATISTICS
+
+
+     UNIVARIATE HIGHER-ORDER MOMENT DESCRIPTIVE STATISTICS
+
+         Variable/         Mean/     Skewness/   Minimum/ % with                Percentiles
+        Sample Size      Variance    Kurtosis    Maximum  Min/Max      20%/60%    40%/80%    Median
+
+     SMP5                  1.349       1.011       0.000   26.30%       0.000      1.000      1.000
+             327.000       1.481       0.775       5.000    2.75%       1.000      2.000
+     SMP6                  1.506       0.776       0.000   20.82%       0.000      1.000      1.000
+             269.000       1.462       0.269       5.000    2.60%       2.000      2.000
+     SMP7                  1.981       0.551       0.000   13.12%       1.000      1.000      2.000
+             160.000       1.931      -0.381       5.000    7.50%       2.000      3.000
+     EAT5                 63.997       0.076      48.000    0.30%      60.000     62.000     64.000
+             329.000      29.201      -0.065      78.000    0.91%      65.000     68.000
+     EAT6                 54.474      -0.685      35.000    0.37%      52.000     54.000     55.000
+             272.000      13.382       2.381      63.000    0.37%      55.000     57.000
+     EAT7                 53.331      -0.438      43.000    1.88%      50.000     53.000     54.000
+             160.000      13.872       0.270      62.000    1.25%      54.000     56.000
+
+
+THE MODEL ESTIMATION TERMINATED NORMALLY
+
+     USE THE FBITERATIONS OPTION TO INCREASE THE NUMBER OF ITERATIONS BY A FACTOR
+     OF AT LEAST TWO TO CHECK CONVERGENCE AND THAT THE PSR VALUE DOES NOT INCREASE.
+
+
+
+MODEL FIT INFORMATION
+
+Number of Free Parameters                              25
+
+Bayesian Posterior Predictive Checking using Chi-Square
+
+          95% Confidence Interval for the Difference Between
+          the Observed and the Replicated Chi-Square Values
+
+                                -22.700            22.556
+
+          Posterior Predictive P-Value              0.527
+
+Information Criteria
+
+          Deviance (DIC)                         6825.097
+          Estimated Number of Parameters (pD)      24.557
+          Bayesian (BIC)                         6921.181
+
+RMSEA (Root Mean Square Error Of Approximation)
+
+          Estimate                           0.000
+          90 Percent C.I.                    0.000  0.076
+          Probability RMSEA <= .05           0.916
+
+CFI/TLI
+
+          CFI                                1.000
+          90 Percent C.I.                    0.939  1.000
+
+          TLI                                1.000
+          90 Percent C.I.                    0.628  1.000
+
+
+
+MODEL RESULTS
+
+                                Posterior  One-Tailed         95% C.I.
+                    Estimate       S.D.      P-Value   Lower 2.5%  Upper 2.5%  Significance
+
+ RISM     BY
+    SMP5               1.000       0.000      0.000       1.000       1.000
+    SMP6               1.000       0.000      0.000       1.000       1.000
+    SMP7               1.000       0.000      0.000       1.000       1.000
+
+ RIMH     BY
+    EAT5               1.000       0.000      0.000       1.000       1.000
+    EAT6               1.000       0.000      0.000       1.000       1.000
+    EAT7               1.000       0.000      0.000       1.000       1.000
+
+ WSM_5    BY
+    SMP5               1.000       0.000      0.000       1.000       1.000
+
+ WSM_6    BY
+    SMP6               1.000       0.000      0.000       1.000       1.000
+
+ WSM_7    BY
+    SMP7               1.000       0.000      0.000       1.000       1.000
+
+ WMH_5    BY
+    EAT5               1.000       0.000      0.000       1.000       1.000
+
+ WMH_6    BY
+    EAT6               1.000       0.000      0.000       1.000       1.000
+
+ WMH_7    BY
+    EAT7               1.000       0.000      0.000       1.000       1.000
+
+ WSM_7      ON
+    WSM_6             -0.075       0.270      0.389      -0.693       0.357
+    WMH_6             -0.041       0.056      0.224      -0.149       0.073
+
+ WMH_7      ON
+    WSM_6             -0.303       0.584      0.299      -1.367       0.946
+    WMH_6             -0.088       0.194      0.317      -0.519       0.255
+
+ WSM_6      ON
+    WSM_5              0.294       0.146      0.030      -0.012       0.547
+    WMH_5              0.008       0.015      0.303      -0.022       0.038
+
+ WMH_6      ON
+    WMH_5              0.014       0.066      0.418      -0.108       0.148
+
+ RISM     WITH
+    RIMH              -0.299       0.242      0.107      -0.778       0.178
+
+ WMH_5    WITH
+    WSM_5             -0.108       0.390      0.389      -0.889       0.646
+
+ WMH_6    WITH
+    WSM_6              0.575       0.286      0.020       0.023       1.150      *
+
+ WMH_7    WITH
+    WSM_7             -0.314       0.500      0.257      -1.289       0.673
+
+ Intercepts
+    SMP5               1.352       0.068      0.000       1.219       1.485      *
+    SMP6               1.505       0.073      0.000       1.361       1.650      *
+    SMP7               1.967       0.113      0.000       1.745       2.187      *
+    EAT5              64.020       0.299      0.000      63.442      64.609      *
+    EAT6              54.510       0.232      0.000      54.055      54.959      *
+    EAT7              53.260       0.302      0.000      52.681      53.854      *
+
+ Variances
+    RISM               0.422       0.159      0.000       0.078       0.696      *
+    RIMH               3.912       1.500      0.000       0.720       6.593      *
+    WSM_5              0.906       0.174      0.000       0.623       1.295      *
+    WMH_5             26.009       2.581      0.000      21.469      31.536      *
+
+ Residual Variances
+    SMP5               0.200       0.000      0.000       0.200       0.200
+    SMP6               0.200       0.000      0.000       0.200       0.200
+    SMP7               0.200       0.000      0.000       0.200       0.200
+    EAT5               0.200       0.000      0.000       0.200       0.200
+    EAT6               0.200       0.000      0.000       0.200       0.200
+    EAT7               0.200       0.000      0.000       0.200       0.200
+    WSM_6              0.781       0.137      0.000       0.515       1.052      *
+    WSM_7              1.390       0.273      0.000       0.875       1.960      *
+    WMH_6              9.683       1.773      0.000       6.480      13.291      *
+    WMH_7             10.501       2.144      0.000       6.263      14.769      *
+
+
+STANDARDIZED MODEL RESULTS
+
+
+STDYX Standardization
+
+                                Posterior  One-Tailed         95% C.I.
+                    Estimate       S.D.      P-Value   Lower 2.5%  Upper 2.5%  Significance
+ RISM     BY
+    SMP5               0.526       0.109      0.000       0.230       0.664      *
+    SMP6               0.530       0.114      0.000       0.229       0.686      *
+    SMP7               0.449       0.093      0.000       0.194       0.568      *
+
+ RIMH     BY
+    EAT5               0.361       0.077      0.000       0.154       0.462      *
+    EAT6               0.533       0.116      0.000       0.226       0.689      *
+    EAT7               0.509       0.108      0.000       0.217       0.651      *
+
+ WSM_5    BY
+    SMP5               0.770       0.065      0.000       0.654       0.903      *
+
+ WSM_6    BY
+    SMP6               0.766       0.072      0.000       0.623       0.904      *
+
+ WSM_7    BY
+    SMP7               0.839       0.045      0.000       0.758       0.931      *
+
+ WMH_5    BY
+    EAT5               0.929       0.026      0.000       0.883       0.985      *
+
+ WMH_6    BY
+    EAT6               0.838       0.065      0.000       0.714       0.967      *
+
+ WMH_7    BY
+    EAT7               0.853       0.056      0.000       0.750       0.969      *
+
+ WSM_7      ON
+    WSM_6             -0.059       0.198      0.389      -0.487       0.282
+    WMH_6             -0.107       0.139      0.224      -0.356       0.193
+
+ WMH_7      ON
+    WSM_6             -0.086       0.158      0.299      -0.364       0.251
+    WMH_6             -0.083       0.179      0.317      -0.467       0.240
+
+ WSM_6      ON
+    WSM_5              0.299       0.142      0.030      -0.013       0.533
+    WMH_5              0.044       0.085      0.303      -0.121       0.214
+
+ WMH_6      ON
+    WMH_5              0.023       0.106      0.418      -0.188       0.222
+
+ RISM     WITH
+    RIMH              -0.254       0.234      0.107      -0.774       0.196
+
+ WMH_5    WITH
+    WSM_5             -0.022       0.079      0.389      -0.175       0.133
+
+ WMH_6    WITH
+    WSM_6              0.212       0.107      0.020       0.008       0.433      *
+
+ WMH_7    WITH
+    WSM_7             -0.083       0.136      0.257      -0.350       0.182
+
+ Intercepts
+    SMP5               1.094       0.070      0.000       0.959       1.233      *
+    SMP6               1.230       0.081      0.000       1.072       1.389      *
+    SMP7               1.360       0.111      0.000       1.144       1.579      *
+    EAT5              11.686       0.468      0.000      10.791      12.615      *
+    EAT6              14.664       0.631      0.000      13.444      15.902      *
+    EAT7              13.714       0.797      0.000      12.130      15.319      *
+
+ Variances
+    RISM               1.000       0.000      0.000       1.000       1.000
+    RIMH               1.000       0.000      0.000       1.000       1.000
+    WSM_5              1.000       0.000      0.000       1.000       1.000
+    WMH_5              1.000       0.000      0.000       1.000       1.000
+
+ Residual Variances
+    SMP5               0.131       0.010      0.000       0.112       0.153      *
+    SMP6               0.133       0.012      0.000       0.112       0.158      *
+    SMP7               0.096       0.011      0.000       0.076       0.119      *
+    EAT5               0.007       0.001      0.000       0.006       0.008      *
+    EAT6               0.014       0.001      0.000       0.012       0.017      *
+    EAT7               0.013       0.002      0.000       0.010       0.016      *
+    WSM_6              0.900       0.078      0.000       0.710       0.994      *
+    WSM_7              0.949       0.068      0.000       0.749       0.998      *
+    WMH_6              0.994       0.016      0.000       0.943       1.000      *
+    WMH_7              0.952       0.067      0.000       0.754       0.998      *
+
+
+R-SQUARE
+
+                                Posterior  One-Tailed         95% C.I.
+    Variable        Estimate       S.D.      P-Value   Lower 2.5%  Upper 2.5%
+
+    SMP5               0.869       0.010      0.000       0.847       0.888
+    SMP6               0.867       0.012      0.000       0.842       0.888
+    SMP7               0.904       0.011      0.000       0.880       0.924
+    EAT5               0.993       0.001      0.000       0.992       0.994
+    EAT6               0.986       0.001      0.000       0.983       0.988
+    EAT7               0.987       0.002      0.000       0.984       0.990
+
+                                Posterior  One-Tailed         95% C.I.
+    Variable        Estimate       S.D.      P-Value   Lower 2.5%  Upper 2.5%
+
+    WSM_6              0.100       0.078      0.000       0.006       0.290
+    WSM_7              0.051       0.068      0.000       0.002       0.251
+    WMH_6              0.006       0.016      0.000       0.000       0.057
+    WMH_7              0.048       0.067      0.000       0.002       0.246
+
+
+TECHNICAL 1 OUTPUT
+
+
+     PARAMETER SPECIFICATION
+
+
+           NU
+              SMP5          SMP6          SMP7          EAT5          EAT6
+              ________      ________      ________      ________      ________
+                    1             2             3             4             5
+
+
+           NU
+              EAT7
+              ________
+                    6
+
+
+           LAMBDA
+              RISM          RIMH          WSM_5         WSM_6         WSM_7
+              ________      ________      ________      ________      ________
+ SMP5               0             0             0             0             0
+ SMP6               0             0             0             0             0
+ SMP7               0             0             0             0             0
+ EAT5               0             0             0             0             0
+ EAT6               0             0             0             0             0
+ EAT7               0             0             0             0             0
+
+
+           LAMBDA
+              WMH_5         WMH_6         WMH_7
+              ________      ________      ________
+ SMP5               0             0             0
+ SMP6               0             0             0
+ SMP7               0             0             0
+ EAT5               0             0             0
+ EAT6               0             0             0
+ EAT7               0             0             0
+
+
+           THETA
+              SMP5          SMP6          SMP7          EAT5          EAT6
+              ________      ________      ________      ________      ________
+ SMP5               0
+ SMP6               0             0
+ SMP7               0             0             0
+ EAT5               0             0             0             0
+ EAT6               0             0             0             0             0
+ EAT7               0             0             0             0             0
+
+
+           THETA
+              EAT7
+              ________
+ EAT7               0
+
+
+           ALPHA
+              RISM          RIMH          WSM_5         WSM_6         WSM_7
+              ________      ________      ________      ________      ________
+                    0             0             0             0             0
+
+
+           ALPHA
+              WMH_5         WMH_6         WMH_7
+              ________      ________      ________
+                    0             0             0
+
+
+           BETA
+              RISM          RIMH          WSM_5         WSM_6         WSM_7
+              ________      ________      ________      ________      ________
+ RISM               0             0             0             0             0
+ RIMH               0             0             0             0             0
+ WSM_5              0             0             0             0             0
+ WSM_6              0             0             7             0             0
+ WSM_7              0             0             0             9             0
+ WMH_5              0             0             0             0             0
+ WMH_6              0             0             0             0             0
+ WMH_7              0             0             0            12             0
+
+
+           BETA
+              WMH_5         WMH_6         WMH_7
+              ________      ________      ________
+ RISM               0             0             0
+ RIMH               0             0             0
+ WSM_5              0             0             0
+ WSM_6              8             0             0
+ WSM_7              0            10             0
+ WMH_5              0             0             0
+ WMH_6             11             0             0
+ WMH_7              0            13             0
+
+
+           PSI
+              RISM          RIMH          WSM_5         WSM_6         WSM_7
+              ________      ________      ________      ________      ________
+ RISM              14
+ RIMH              15            16
+ WSM_5              0             0            17
+ WSM_6              0             0             0            18
+ WSM_7              0             0             0             0            19
+ WMH_5              0             0            20             0             0
+ WMH_6              0             0             0            22             0
+ WMH_7              0             0             0             0            24
+
+
+           PSI
+              WMH_5         WMH_6         WMH_7
+              ________      ________      ________
+ WMH_5             21
+ WMH_6              0            23
+ WMH_7              0             0            25
+
+
+     STARTING VALUES
+
+
+           NU
+              SMP5          SMP6          SMP7          EAT5          EAT6
+              ________      ________      ________      ________      ________
+                1.349         1.506         1.981        63.997        54.474
+
+
+           NU
+              EAT7
+              ________
+               53.331
+
+
+           LAMBDA
+              RISM          RIMH          WSM_5         WSM_6         WSM_7
+              ________      ________      ________      ________      ________
+ SMP5           1.000         0.000         1.000         0.000         0.000
+ SMP6           1.000         0.000         0.000         1.000         0.000
+ SMP7           1.000         0.000         0.000         0.000         1.000
+ EAT5           0.000         1.000         0.000         0.000         0.000
+ EAT6           0.000         1.000         0.000         0.000         0.000
+ EAT7           0.000         1.000         0.000         0.000         0.000
+
+
+           LAMBDA
+              WMH_5         WMH_6         WMH_7
+              ________      ________      ________
+ SMP5           0.000         0.000         0.000
+ SMP6           0.000         0.000         0.000
+ SMP7           0.000         0.000         0.000
+ EAT5           1.000         0.000         0.000
+ EAT6           0.000         1.000         0.000
+ EAT7           0.000         0.000         1.000
+
+
+           THETA
+              SMP5          SMP6          SMP7          EAT5          EAT6
+              ________      ________      ________      ________      ________
+ SMP5           0.200
+ SMP6           0.000         0.200
+ SMP7           0.000         0.000         0.200
+ EAT5           0.000         0.000         0.000         0.200
+ EAT6           0.000         0.000         0.000         0.000         0.200
+ EAT7           0.000         0.000         0.000         0.000         0.000
+
+
+           THETA
+              EAT7
+              ________
+ EAT7           0.200
+
+
+           ALPHA
+              RISM          RIMH          WSM_5         WSM_6         WSM_7
+              ________      ________      ________      ________      ________
+                0.000         0.000         0.000         0.000         0.000
+
+
+           ALPHA
+              WMH_5         WMH_6         WMH_7
+              ________      ________      ________
+                0.000         0.000         0.000
+
+
+           BETA
+              RISM          RIMH          WSM_5         WSM_6         WSM_7
+              ________      ________      ________      ________      ________
+ RISM           0.000         0.000         0.000         0.000         0.000
+ RIMH           0.000         0.000         0.000         0.000         0.000
+ WSM_5          0.000         0.000         0.000         0.000         0.000
+ WSM_6          0.000         0.000         0.000         0.000         0.000
+ WSM_7          0.000         0.000         0.000         0.000         0.000
+ WMH_5          0.000         0.000         0.000         0.000         0.000
+ WMH_6          0.000         0.000         0.000         0.000         0.000
+ WMH_7          0.000         0.000         0.000         0.000         0.000
+
+
+           BETA
+              WMH_5         WMH_6         WMH_7
+              ________      ________      ________
+ RISM           0.000         0.000         0.000
+ RIMH           0.000         0.000         0.000
+ WSM_5          0.000         0.000         0.000
+ WSM_6          0.000         0.000         0.000
+ WSM_7          0.000         0.000         0.000
+ WMH_5          0.000         0.000         0.000
+ WMH_6          0.000         0.000         0.000
+ WMH_7          0.000         0.000         0.000
+
+
+           PSI
+              RISM          RIMH          WSM_5         WSM_6         WSM_7
+              ________      ________      ________      ________      ________
+ RISM           1.000
+ RIMH           0.000         1.000
+ WSM_5          0.000         0.000         1.000
+ WSM_6          0.000         0.000         0.000         1.000
+ WSM_7          0.000         0.000         0.000         0.000         1.000
+ WMH_5          0.000         0.000         0.000         0.000         0.000
+ WMH_6          0.000         0.000         0.000         0.000         0.000
+ WMH_7          0.000         0.000         0.000         0.000         0.000
+
+
+           PSI
+              WMH_5         WMH_6         WMH_7
+              ________      ________      ________
+ WMH_5          1.000
+ WMH_6          0.000         1.000
+ WMH_7          0.000         0.000         1.000
+
+
+
+     PRIORS FOR ALL PARAMETERS            PRIOR MEAN      PRIOR VARIANCE     PRIOR STD. DEV.
+
+     Parameter 1~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 2~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 3~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 4~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 5~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 6~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 7~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 8~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 9~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 10~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 11~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 12~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 13~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 14~IW(0.000,-3)             infinity            infinity            infinity
+     Parameter 15~IW(0.000,-3)             infinity            infinity            infinity
+     Parameter 16~IW(0.000,-3)             infinity            infinity            infinity
+     Parameter 17~IW(0.000,-3)             infinity            infinity            infinity
+     Parameter 18~IW(0.000,-3)             infinity            infinity            infinity
+     Parameter 19~IW(0.000,-3)             infinity            infinity            infinity
+     Parameter 20~IW(0.000,-3)             infinity            infinity            infinity
+     Parameter 21~IW(0.000,-3)             infinity            infinity            infinity
+     Parameter 22~IW(0.000,-3)             infinity            infinity            infinity
+     Parameter 23~IW(0.000,-3)             infinity            infinity            infinity
+     Parameter 24~IW(0.000,-3)             infinity            infinity            infinity
+     Parameter 25~IW(0.000,-3)             infinity            infinity            infinity
+
+
+TECHNICAL 8 OUTPUT
+
+
+   TECHNICAL 8 OUTPUT FOR BAYES ESTIMATION
+
+     CHAIN    BSEED
+     1        0
+     2        285380
+
+                     POTENTIAL       PARAMETER WITH
+     ITERATION    SCALE REDUCTION      HIGHEST PSR
+     100              2.773               5
+     200              2.051               6
+     300              1.731               16
+     400              1.805               13
+     500              1.527               13
+     600              1.332               25
+     700              1.219               25
+     800              1.150               25
+     900              1.136               9
+     1000             1.096               14
+     1100             1.054               6
+     1200             1.061               4
+     1300             1.055               4
+     1400             1.041               4
+     1500             1.029               4
+     1600             1.023               4
+     1700             1.026               12
+     1800             1.041               17
+     1900             1.034               17
+     2000             1.046               16
+     2100             1.061               16
+     2200             1.072               16
+     2300             1.049               16
+     2400             1.071               16
+     2500             1.062               16
+     2600             1.060               16
+     2700             1.056               16
+     2800             1.030               16
+     2900             1.017               5
+     3000             1.024               5
+     3100             1.017               5
+     3200             1.007               5
+     3300             1.010               6
+     3400             1.019               6
+     3500             1.018               6
+     3600             1.019               6
+     3700             1.008               6
+     3800             1.010               6
+     3900             1.011               11
+     4000             1.016               16
+     4100             1.013               16
+     4200             1.011               16
+     4300             1.007               11
+     4400             1.008               11
+     4500             1.009               5
+     4600             1.010               5
+     4700             1.011               5
+     4800             1.011               5
+     4900             1.013               4
+     5000             1.013               4
+     5100             1.013               4
+     5200             1.006               5
+     5300             1.006               5
+     5400             1.007               4
+     5500             1.005               5
+     5600             1.005               21
+     5700             1.006               21
+     5800             1.007               21
+     5900             1.009               21
+     6000             1.010               21
+     6100             1.009               21
+     6200             1.010               4
+     6300             1.013               4
+     6400             1.015               4
+     6500             1.010               4
+     6600             1.011               4
+     6700             1.012               4
+     6800             1.015               4
+     6900             1.018               4
+     7000             1.018               4
+     7100             1.014               4
+     7200             1.013               4
+     7300             1.015               4
+     7400             1.013               4
+     7500             1.014               4
+     7600             1.013               4
+     7700             1.015               4
+     7800             1.010               4
+     7900             1.011               16
+     8000             1.013               16
+     8100             1.012               16
+     8200             1.012               16
+     8300             1.012               16
+     8400             1.009               16
+     8500             1.008               16
+     8600             1.010               16
+     8700             1.011               16
+     8800             1.009               16
+     8900             1.007               16
+     9000             1.007               16
+     9100             1.010               4
+     9200             1.008               4
+     9300             1.008               16
+     9400             1.008               4
+     9500             1.007               4
+     9600             1.005               14
+     9700             1.005               14
+     9800             1.004               14
+     9900             1.004               14
+     10000            1.005               6
+
+
+SUMMARIES OF PLAUSIBLE VALUES (N = NUMBER OF OBSERVATIONS * NUMBER OF IMPUTATIONS)
+
+
+     SAMPLE STATISTICS
+
+
+           Means
+              RISM          RIMH          WSM_5         WSM_6         WSM_7
+              ________      ________      ________      ________      ________
+               -0.001        -0.002         0.002         0.002         0.012
+
+
+           Means
+              WMH_5         WMH_6         WMH_7
+              ________      ________      ________
+                0.029        -0.027         0.004
+
+
+           Covariances
+              RISM          RIMH          WSM_5         WSM_6         WSM_7
+              ________      ________      ________      ________      ________
+ RISM           0.421
+ RIMH          -0.267         3.621
+ WSM_5         -0.009         0.003         0.884
+ WSM_6          0.000         0.016         0.273         0.853
+ WSM_7         -0.013         0.013        -0.001        -0.079         1.465
+ WMH_5          0.010        -0.070        -0.121         0.198         0.034
+ WMH_6          0.023        -0.013         0.029         0.588        -0.482
+ WMH_7         -0.029        -0.073        -0.147        -0.306        -0.258
+
+
+           Covariances
+              WMH_5         WMH_6         WMH_7
+              ________      ________      ________
+ WMH_5         25.687
+ WMH_6          0.543         9.638
+ WMH_7          0.292        -0.897        10.977
+
+
+           Correlations
+              RISM          RIMH          WSM_5         WSM_6         WSM_7
+              ________      ________      ________      ________      ________
+ RISM           1.000
+ RIMH          -0.216         1.000
+ WSM_5         -0.015         0.002         1.000
+ WSM_6          0.000         0.009         0.315         1.000
+ WSM_7         -0.016         0.006        -0.001        -0.071         1.000
+ WMH_5          0.003        -0.007        -0.025         0.042         0.006
+ WMH_6          0.011        -0.002         0.010         0.205        -0.128
+ WMH_7         -0.014        -0.012        -0.047        -0.100        -0.064
+
+
+           Correlations
+              WMH_5         WMH_6         WMH_7
+              ________      ________      ________
+ WMH_5          1.000
+ WMH_6          0.035         1.000
+ WMH_7          0.017        -0.087         1.000
+
+
+SUMMARY OF PLAUSIBLE STANDARD DEVIATION (N = NUMBER OF OBSERVATIONS)
+
+
+     SAMPLE STATISTICS
+
+
+           Means
+              RISM_SD       RIMH_SD       WSM_5_SD      WSM_6_SD      WSM_7_SD
+              ________      ________      ________      ________      ________
+                0.497         1.504         0.587         0.637         0.924
+
+
+           Means
+              WMH_5_SD      WMH_6_SD      WMH_7_SD
+              ________      ________      ________
+                1.634         1.810         2.443
+
+
+           Covariances
+              RISM_SD       RIMH_SD       WSM_5_SD      WSM_6_SD      WSM_7_SD
+              ________      ________      ________      ________      ________
+ RISM_SD        0.002
+ RIMH_SD        0.004         0.034
+ WSM_5_SD       0.002         0.002         0.004
+ WSM_6_SD       0.003         0.012         0.001         0.020
+ WSM_7_SD       0.007         0.030         0.004         0.004         0.105
+ WMH_5_SD       0.007         0.033         0.020         0.010         0.027
+ WMH_6_SD       0.014         0.075         0.003         0.083         0.035
+ WMH_7_SD       0.019         0.098         0.010         0.012         0.296
+
+
+           Covariances
+              WMH_5_SD      WMH_6_SD      WMH_7_SD
+              ________      ________      ________
+ WMH_5_SD       0.218
+ WMH_6_SD       0.058         0.445
+ WMH_7_SD       0.082         0.113         0.912
+
+
+           Correlations
+              RISM_SD       RIMH_SD       WSM_5_SD      WSM_6_SD      WSM_7_SD
+              ________      ________      ________      ________      ________
+ RISM_SD        1.000
+ RIMH_SD        0.482         1.000
+ WSM_5_SD       0.481         0.132         1.000
+ WSM_6_SD       0.491         0.459         0.118         1.000
+ WSM_7_SD       0.425         0.513         0.170         0.091         1.000
+ WMH_5_SD       0.309         0.385         0.652         0.151         0.177
+ WMH_6_SD       0.427         0.617         0.058         0.890         0.163
+ WMH_7_SD       0.406         0.558         0.161         0.093         0.958
+
+
+           Correlations
+              WMH_5_SD      WMH_6_SD      WMH_7_SD
+              ________      ________      ________
+ WMH_5_SD       1.000
+ WMH_6_SD       0.187         1.000
+ WMH_7_SD       0.185         0.177         1.000
+
+
+RESULTS SAVING INFORMATION
+
+  Order of data
+
+    Parameter estimates
+     (saved in order shown in Technical 1 output)
+    Standard errors
+     (saved in order shown in Technical 1 output)
+    StdYX standardized coefficients
+     (saved in order shown in Technical 1 output)
+    Standard errors for StdYX standardized coefficients
+     (saved in order shown in Technical 1 output)
+    Number of Free Parameters
+    Bayesian (BIC)
+    Posterior Predictive P-Value
+    Deviance (DIC)
+    Estimated Number of Parameters (pD)
+    RMSEA : Estimate
+    RMSEA : Low CI
+    RMSEA : High CI
+    RMSEA : Probability
+    CFI
+    CFI : Low CI
+    CFI : High CI
+    TLI
+    TLI : Low CI
+    TLI : High CI
+
+  Save file
+    dd_baseline_bisbas_results.dat
+
+  Save file format           Free
+
+
+SAVEDATA INFORMATION
+
+
+  Save file
+    dd_baseline_bisbas.dat
+
+  Order of variables
+
+    SMP5
+    SMP6
+    SMP7
+    EAT5
+    EAT6
+    EAT7
+    CSM5
+    CSM6
+    SEX
+    SES
+    EDU1
+    BSI6
+    BSI7
+    BSID6
+    BSID7
+    BSIA6
+    BSIA7
+    PDSI2
+    PDS5
+    PDS6
+    PDS7
+    RISM Mean
+    RISM Median
+    RISM Standard Deviation
+    RISM 2.5% Value
+    RISM 97.5% Value
+    RIMH Mean
+    RIMH Median
+    RIMH Standard Deviation
+    RIMH 2.5% Value
+    RIMH 97.5% Value
+    WSM_5 Mean
+    WSM_5 Median
+    WSM_5 Standard Deviation
+    WSM_5 2.5% Value
+    WSM_5 97.5% Value
+    WSM_6 Mean
+    WSM_6 Median
+    WSM_6 Standard Deviation
+    WSM_6 2.5% Value
+    WSM_6 97.5% Value
+    WSM_7 Mean
+    WSM_7 Median
+    WSM_7 Standard Deviation
+    WSM_7 2.5% Value
+    WSM_7 97.5% Value
+    WMH_5 Mean
+    WMH_5 Median
+    WMH_5 Standard Deviation
+    WMH_5 2.5% Value
+    WMH_5 97.5% Value
+    WMH_6 Mean
+    WMH_6 Median
+    WMH_6 Standard Deviation
+    WMH_6 2.5% Value
+    WMH_6 97.5% Value
+    WMH_7 Mean
+    WMH_7 Median
+    WMH_7 Standard Deviation
+    WMH_7 2.5% Value
+    WMH_7 97.5% Value
+
+  Save file format           Free
+
+  Save file record length    10000
+
+  Save missing symbol        *
+
+
+DIAGRAM INFORMATION
+
+  Use View Diagram under the Diagram menu in the Mplus Editor to view the diagram.
+  If running Mplus from the Mplus Diagrammer, the diagram opens automatically.
+
+  Diagram output
+    c:\users\lg05\owncloud - lukas gunschera@cloud.mrc-cbu.cam.ac.uk\dmh_lukas\projects\2024_cognitive_phenotype\code\lc
+
+     Beginning Time:  09:27:40
+        Ending Time:  09:28:06
+       Elapsed Time:  00:00:26
+
+
+
+MUTHEN & MUTHEN
+3463 Stoner Ave.
+Los Angeles, CA  90066
+
+Tel: (310) 391-9971
+Fax: (310) 391-8971
+Web: www.StatModel.com
+Support: Support@StatModel.com
+
+Copyright (c) 1998-2023 Muthen & Muthen

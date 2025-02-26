@@ -1,0 +1,1001 @@
+Mplus VERSION 8.9
+MUTHEN & MUTHEN
+10/21/2024  10:02 AM
+
+INPUT INSTRUCTIONS
+
+  TITLE: RI-CLPM for LCID Social Media and BAS Subscale (delay discounting logk)
+
+  DATA:
+      FILE = "C:\Users\lg05\ownCloud - Lukas Gunschera@cloud.mrc-cbu.cam.ac.uk\
+      dmh_lukas\projects\2024_cognitive_phenotype\data\lcid\mplus\
+      dd_delaydiscount\lcid_logk_bas.dat";
+
+  VARIABLE:
+      !variable names included in dataset
+      NAMES ARE logk2 logk3 logk4 logk5 logk6 !delay discounting parameter
+                smt5 smt6 smt7         !social media use total
+                smp5 smp6 smp7         !social media use posting and scrolling
+                smm5 smm6 smm7         !social media use messaging
+                smv5 smv6 smv7         !social media use video watching
+                eat5 eat6 eat7         !eatq-ec total
+                bis5 bis6 bis7         !bis/bas behavioural inhibition
+                bas5 bas6 bas7         !bis/bas behavioural activation
+                bbt5 bbt6 bbt7         !bis/bas total
+                hsc5 hsc6 hsc7         !highly sensitive child scale total
+                sdq5 sdq6 sdq7         !strengths and difficulties total
+                sdqi5 sdqi6 sdqi7      !strengths and difficulties internalising
+                sdqe5 sdqe6 sdqe7      !strengths and difficulties externalising
+
+                csm5 csm6              !compulsive social media use [aux]
+                sex ses edu1           !demographics [aux]
+                bsi6 bsi7              !brief symptom inventory total [aux]
+                bsid6 bsid7            !brief symptom inventory depression [aux]
+                bsia6 bsia7            !brief symptom inventory anxiety [aux]
+                pdsi2 pds5 pds6 pds7;  !pubertal development score [aux]
+
+      !variables used in analyses
+      USEVARIABLES ARE logk5 logk6
+                       smp5 smp6 smp7
+                       bas5 bas6 bas7;
+
+      !missingness marker in dataset
+      MISSING ARE ALL (-999);
+
+      !auxiliary variables to establish MAR
+      AUXILIARY ARE csm5 csm6 sex ses edu1
+                    bsi6 bsi7 bsid6 bsid7 bsia6 bsia7
+                    pdsi2 pds5 pds6 pds7;
+
+  ANALYSIS:
+      Estimator = BAYES;
+      Type = random;          !required when including interaction effects
+      model = nocovariances;  !covariances should not be estimated per default
+      processors = 2;         !multiple processors used to increase computing speed
+      chains = 2;             !number of MCMC chains
+      thin = 10;              !save every 10th iteration
+
+      fbiter = 10000;         !PSR < 1.1 at 1,000 iterations (10k minimum applied)
+
+   MODEL:
+      !Create between components (random intercepts)
+      RIsm BY smp5@1 smp6@1 smp7@1;
+      RImh BY bas5@1 bas6@1 bas7@1;
+
+      !Create within-person centred variables
+      wsm_5 BY smp5@1;
+      wsm_6 BY smp6@1;
+      wsm_7 BY smp7@1;
+
+      wmh_5 BY bas5@1;
+      wmh_6 BY bas6@1;
+      wmh_7 BY bas7@1;
+
+      FLK6 BY logk6@1;
+      FLK5 BY logk5@1;
+
+      !Constrain measurement error variances to zero
+      !or close to zero to allow for reasonable imputation times
+      smp5-bas7@0.2;
+      logk6@0.2; logk5@0.2;
+
+      !Estimate the lagged effects between the within-person centred variables
+      wsm_7 ON wsm_6 wmh_6;
+      wmh_7 ON wsm_6 wmh_6;
+
+      wsm_6 ON wsm_5 wmh_5;
+      wmh_6 ON wsm_5 wmh_5;
+
+      !Create interaction term interacting within-person centred bisbas score
+      !with time-invariant delay discounting parameter k
+      mod_dd6 | wsm_6 XWITH FLK6;
+      mod_dd5 | wsm_5 XWITH FLK5;
+
+      !predict within-person centred emotional problems with interaction
+  	wmh_7 ON mod_dd6 (a);
+      wmh_6 ON mod_dd5 (a);
+
+      !Estimate covariance between random intercepts
+      RIsm WITH RImh;
+
+      !Estimate the covariance between the within-person
+      !components at the first wave
+      wmh_5 WITH wsm_5;
+
+      !Estimate the covariances between the residuals of
+      !the within-person components
+      wmh_6 WITH wsm_6;
+      wmh_7 WITH wsm_7;
+
+  OUTPUT:
+      TECH8;    !get PSR values
+      STDYX;    !get standardised output
+
+
+
+INPUT READING TERMINATED NORMALLY
+
+
+
+RI-CLPM for LCID Social Media and BAS Subscale (delay discounting logk)
+
+SUMMARY OF ANALYSIS
+
+Number of groups                                                 1
+Number of observations                                         300
+
+Number of dependent variables                                    8
+Number of independent variables                                  0
+Number of continuous latent variables                           12
+
+Observed dependent variables
+
+  Continuous
+   LOGK5       LOGK6       SMP5        SMP6        SMP7        BAS5
+   BAS6        BAS7
+
+Observed auxiliary variables
+   CSM5        CSM6        SEX         SES         EDU1        BSI6
+   BSI7        BSID6       BSID7       BSIA6       BSIA7       PDSI2
+   PDS5        PDS6        PDS7
+
+Continuous latent variables
+   RISM        RIMH        WSM_5       WSM_6       WSM_7       WMH_5
+   WMH_6       WMH_7       FLK6        FLK5        MOD_DD6     MOD_DD5
+
+
+Estimator                                                    BAYES
+Specifications for Bayesian Estimation
+  Point estimate                                            MEDIAN
+  Number of Markov chain Monte Carlo (MCMC) chains               2
+  Random seed for the first chain                                0
+  Starting value information                           UNPERTURBED
+  Algorithm used for Markov chain Monte Carlo           GIBBS(PX1)
+  Fixed number of iterations                                 10000
+  K-th iteration used for thinning                              10
+
+Input data file(s)
+  C:\Users\lg05\ownCloud - Lukas Gunschera@cloud.mrc-cbu.cam.ac.uk\dmh_lukas\pro
+Input data format  FREE
+
+
+SUMMARY OF DATA
+
+
+
+COVARIANCE COVERAGE OF DATA
+
+Minimum covariance coverage value   0.100
+
+     Number of missing data patterns            32
+
+
+     PROPORTION OF DATA PRESENT
+
+
+           Covariance Coverage
+              LOGK5         LOGK6         SMP5          SMP6          SMP7
+              ________      ________      ________      ________      ________
+ LOGK5          0.787
+ LOGK6          0.203         0.227
+ SMP5           0.777         0.217         0.867
+ SMP6           0.630         0.227         0.697         0.757
+ SMP7           0.380         0.097         0.437         0.383         0.543
+ BAS5           0.690         0.193         0.767         0.630         0.383
+ BAS6           0.607         0.227         0.670         0.730         0.367
+ BAS7           0.380         0.097         0.437         0.380         0.540
+
+
+           Covariance Coverage
+              BAS5          BAS6          BAS7
+              ________      ________      ________
+ BAS5           0.770
+ BAS6           0.607         0.730
+ BAS7           0.383         0.363         0.540
+
+
+
+UNIVARIATE SAMPLE STATISTICS
+
+
+     UNIVARIATE HIGHER-ORDER MOMENT DESCRIPTIVE STATISTICS
+
+         Variable/         Mean/     Skewness/   Minimum/ % with                Percentiles
+        Sample Size      Variance    Kurtosis    Maximum  Min/Max      20%/60%    40%/80%    Median
+
+     LOGK5                 4.211       0.461       0.184    0.42%       1.992      3.249      3.881
+             236.000       5.763      -0.443      10.192    0.42%       4.638      6.307
+     LOGK6                 4.987       0.093       0.312    1.47%       2.434      4.315      5.145
+              68.000       6.163      -0.768      10.295    1.47%       5.603      6.959
+     SMP5                  1.369       1.000       0.000   27.31%       0.000      1.000      1.000
+             260.000       1.594       0.602       5.000    3.08%       1.000      2.000
+     SMP6                  1.511       0.837       0.000   20.26%       0.000      1.000      1.000
+             227.000       1.492       0.387       5.000    3.08%       2.000      3.000
+     SMP7                  2.006       0.563       0.000   14.11%       1.000      1.000      2.000
+             163.000       2.117      -0.499       5.000    9.20%       2.000      3.000
+     BAS5                 38.476      -0.114      25.000    0.43%      34.000     37.000     39.000
+             231.000      24.223      -0.308      52.000    0.43%      40.000     42.000
+     BAS6                 37.525      -0.332      24.000    0.46%      34.000     37.000     38.000
+             219.000      20.030       0.182      51.000    0.46%      39.000     41.000
+     BAS7                 38.463      -0.408      20.000    0.62%      35.000     38.000     39.000
+             162.000      22.903       0.614      50.000    0.62%      40.000     43.000
+
+
+THE MODEL ESTIMATION TERMINATED NORMALLY
+
+     USE THE FBITERATIONS OPTION TO INCREASE THE NUMBER OF ITERATIONS BY A FACTOR
+     OF AT LEAST TWO TO CHECK CONVERGENCE AND THAT THE PSR VALUE DOES NOT INCREASE.
+
+
+
+MODEL FIT INFORMATION
+
+Number of Free Parameters                              31
+
+
+
+MODEL RESULTS
+
+                                Posterior  One-Tailed         95% C.I.
+                    Estimate       S.D.      P-Value   Lower 2.5%  Upper 2.5%  Significance
+
+ RISM     BY
+    SMP5               1.000       0.000      0.000       1.000       1.000
+    SMP6               1.000       0.000      0.000       1.000       1.000
+    SMP7               1.000       0.000      0.000       1.000       1.000
+
+ RIMH     BY
+    BAS5               1.000       0.000      0.000       1.000       1.000
+    BAS6               1.000       0.000      0.000       1.000       1.000
+    BAS7               1.000       0.000      0.000       1.000       1.000
+
+ WSM_5    BY
+    SMP5               1.000       0.000      0.000       1.000       1.000
+
+ WSM_6    BY
+    SMP6               1.000       0.000      0.000       1.000       1.000
+
+ WSM_7    BY
+    SMP7               1.000       0.000      0.000       1.000       1.000
+
+ WMH_5    BY
+    BAS5               1.000       0.000      0.000       1.000       1.000
+
+ WMH_6    BY
+    BAS6               1.000       0.000      0.000       1.000       1.000
+
+ WMH_7    BY
+    BAS7               1.000       0.000      0.000       1.000       1.000
+
+ FLK6     BY
+    LOGK6              1.000       0.000      0.000       1.000       1.000
+
+ FLK5     BY
+    LOGK5              1.000       0.000      0.000       1.000       1.000
+
+ WSM_7      ON
+    WSM_6             -0.334       0.303      0.106      -1.015       0.177
+    WMH_6              0.002       0.051      0.486      -0.101       0.103
+
+ WMH_7      ON
+    WSM_6             -0.302       0.851      0.353      -2.015       1.336
+    WMH_6              0.178       0.190      0.197      -0.278       0.457
+    MOD_DD6            0.470       0.203      0.011       0.071       0.872      *
+
+ WSM_6      ON
+    WSM_5              0.292       0.133      0.017       0.021       0.538      *
+    WMH_5             -0.003       0.023      0.452      -0.049       0.043
+
+ WMH_6      ON
+    WSM_5             -0.834       0.483      0.038      -1.811       0.090
+    WMH_5              0.397       0.110      0.000       0.162       0.584      *
+    MOD_DD5            0.470       0.203      0.011       0.071       0.872      *
+
+ RISM     WITH
+    RIMH               0.494       0.423      0.115      -0.285       1.356
+
+ WMH_5    WITH
+    WSM_5              0.569       0.513      0.133      -0.430       1.592
+
+ WMH_6    WITH
+    WSM_6              0.478       0.374      0.104      -0.266       1.207
+
+ WMH_7    WITH
+    WSM_7              0.874       0.705      0.100      -0.476       2.313
+
+ Intercepts
+    LOGK5              4.183       0.158      0.000       3.869       4.484      *
+    LOGK6              4.934       0.312      0.000       4.332       5.545      *
+    SMP5               1.378       0.078      0.000       1.223       1.531      *
+    SMP6               1.528       0.082      0.000       1.369       1.691      *
+    SMP7               1.982       0.117      0.000       1.753       2.212      *
+    BAS5              38.583       0.303      0.000      37.980      39.165      *
+    BAS6              37.672       0.286      0.000      37.118      38.248      *
+    BAS7              38.572       0.361      0.000      37.867      39.248      *
+
+ Variances
+    RISM               0.548       0.146      0.000       0.241       0.816      *
+    RIMH               4.726       2.746      0.000       0.488      10.189      *
+    WSM_5              0.906       0.174      0.000       0.622       1.294      *
+    WMH_5             20.264       3.120      0.000      14.563      26.641      *
+    FLK6               6.609       1.350      0.000       4.664       9.908      *
+    FLK5               5.640       0.552      0.000       4.689       6.860      *
+
+ Residual Variances
+    LOGK5              0.200       0.000      0.000       0.200       0.200
+    LOGK6              0.200       0.000      0.000       0.200       0.200
+    SMP5               0.200       0.000      0.000       0.200       0.200
+    SMP6               0.200       0.000      0.000       0.200       0.200
+    SMP7               0.200       0.000      0.000       0.200       0.200
+    BAS5               0.200       0.000      0.000       0.200       0.200
+    BAS6               0.200       0.000      0.000       0.200       0.200
+    BAS7               0.200       0.000      0.000       0.200       0.200
+    WSM_6              0.716       0.137      0.000       0.461       1.006      *
+    WSM_7              1.418       0.335      0.000       0.743       2.060      *
+    WMH_6             11.157       2.055      0.000       7.283      15.265      *
+    WMH_7             15.724       3.161      0.000       9.095      21.859      *
+
+
+STANDARDIZED MODEL RESULTS
+
+
+STDYX Standardization
+
+                                Posterior  One-Tailed         95% C.I.
+                    Estimate       S.D.      P-Value   Lower 2.5%  Upper 2.5%  Significance
+ RISM     BY
+    SMP5               0.576       0.079      0.000       0.384       0.687      *
+    SMP6               0.591       0.084      0.000       0.391       0.719      *
+    SMP7               0.486       0.068      0.000       0.324       0.591      *
+
+ RIMH     BY
+    BAS5               0.434       0.132      0.000       0.140       0.625      *
+    BAS6               0.470       0.149      0.000       0.150       0.695      *
+    BAS7               0.448       0.137      0.000       0.145       0.645      *
+
+ WSM_5    BY
+    SMP5               0.739       0.056      0.000       0.635       0.856      *
+
+ WSM_6    BY
+    SMP6               0.723       0.066      0.000       0.589       0.850      *
+
+ WSM_7    BY
+    SMP7               0.823       0.039      0.000       0.746       0.900      *
+
+ WMH_5    BY
+    BAS5               0.896       0.059      0.000       0.775       0.986      *
+
+ WMH_6    BY
+    BAS6               0.877       0.076      0.000       0.712       0.984      *
+
+ WMH_7    BY
+    BAS7               0.890       0.064      0.000       0.759       0.985      *
+
+ FLK6     BY
+    LOGK6              0.985       0.003      0.000       0.979       0.990      *
+
+ FLK5     BY
+    LOGK5              0.983       0.002      0.000       0.979       0.986      *
+
+ WSM_7      ON
+    WSM_6             -0.244       0.202      0.106      -0.656       0.136
+    WMH_6              0.005       0.161      0.486      -0.312       0.321
+
+ WMH_7      ON
+    WSM_6             -0.065       0.172      0.353      -0.389       0.288
+    WMH_6              0.166       0.178      0.197      -0.253       0.430
+    MOD_DD6            0.252       0.121      0.011       0.035       0.510      *
+
+ WSM_6      ON
+    WSM_5              0.311       0.132      0.017       0.023       0.535      *
+    WMH_5             -0.014       0.117      0.452      -0.243       0.218
+
+ WMH_6      ON
+    WSM_5             -0.198       0.112      0.038      -0.412       0.022
+    WMH_5              0.439       0.109      0.000       0.193       0.614      *
+    MOD_DD5            0.265       0.110      0.011       0.040       0.474      *
+
+ RISM     WITH
+    RIMH               0.349       0.301      0.115      -0.243       0.911
+
+ WMH_5    WITH
+    WSM_5              0.134       0.117      0.133      -0.100       0.355
+
+ WMH_6    WITH
+    WSM_6              0.170       0.127      0.104      -0.106       0.397
+
+ WMH_7    WITH
+    WSM_7              0.188       0.154      0.100      -0.115       0.496
+
+ Intercepts
+    LOGK5              1.731       0.105      0.000       1.522       1.936      *
+    LOGK6              1.893       0.216      0.000       1.464       2.317      *
+    SMP5               1.073       0.077      0.000       0.919       1.223      *
+    SMP6               1.222       0.087      0.000       1.051       1.393      *
+    SMP7               1.304       0.107      0.000       1.101       1.519      *
+    BAS5               7.677       0.364      0.000       6.986       8.405      *
+    BAS6               8.157       0.401      0.000       7.381       8.957      *
+    BAS7               7.937       0.460      0.000       7.044       8.831      *
+
+ Variances
+    RISM               1.000       0.000      0.000       1.000       1.000
+    RIMH               1.000       0.000      0.000       1.000       1.000
+    WSM_5              1.000       0.000      0.000       1.000       1.000
+    WMH_5              1.000       0.000      0.000       1.000       1.000
+    FLK6               1.000       0.000      0.000       1.000       1.000
+    FLK5               1.000       0.000      0.000       1.000       1.000
+
+ Residual Variances
+    LOGK5              0.034       0.003      0.000       0.028       0.041      *
+    LOGK6              0.029       0.005      0.000       0.020       0.041      *
+    SMP5               0.121       0.011      0.000       0.101       0.143      *
+    SMP6               0.128       0.012      0.000       0.105       0.153      *
+    SMP7               0.087       0.010      0.000       0.069       0.108      *
+    BAS5               0.008       0.001      0.000       0.007       0.009      *
+    BAS6               0.009       0.001      0.000       0.008       0.011      *
+    BAS7               0.008       0.001      0.000       0.007       0.010      *
+    WSM_6              0.887       0.076      0.000       0.706       0.990      *
+    WSM_7              0.921       0.116      0.000       0.562       0.997      *
+    WMH_6              0.685       0.094      0.000       0.515       0.888      *
+    WMH_7              0.847       0.089      0.000       0.625       0.971      *
+
+
+R-SQUARE
+
+                                Posterior  One-Tailed         95% C.I.
+    Variable        Estimate       S.D.      P-Value   Lower 2.5%  Upper 2.5%
+
+    LOGK5              0.966       0.003      0.000       0.959       0.972
+    LOGK6              0.971       0.005      0.000       0.959       0.980
+    SMP5               0.879       0.011      0.000       0.857       0.899
+    SMP6               0.872       0.012      0.000       0.847       0.895
+    SMP7               0.913       0.010      0.000       0.892       0.931
+    BAS5               0.992       0.001      0.000       0.991       0.993
+    BAS6               0.991       0.001      0.000       0.989       0.992
+    BAS7               0.992       0.001      0.000       0.990       0.993
+
+                                Posterior  One-Tailed         95% C.I.
+    Variable        Estimate       S.D.      P-Value   Lower 2.5%  Upper 2.5%
+
+    WSM_6              0.113       0.076      0.000       0.010       0.294
+    WSM_7              0.079       0.116      0.000       0.003       0.438
+    WMH_6              0.315       0.094      0.000       0.112       0.485
+    WMH_7              0.153       0.089      0.000       0.029       0.375
+
+
+TECHNICAL 1 OUTPUT
+
+
+     PARAMETER SPECIFICATION
+
+
+           NU
+              LOGK5         LOGK6         SMP5          SMP6          SMP7
+              ________      ________      ________      ________      ________
+                    1             2             3             4             5
+
+
+           NU
+              BAS5          BAS6          BAS7
+              ________      ________      ________
+                    6             7             8
+
+
+           LAMBDA
+              RISM          RIMH          WSM_5         WSM_6         WSM_7
+              ________      ________      ________      ________      ________
+ LOGK5              0             0             0             0             0
+ LOGK6              0             0             0             0             0
+ SMP5               0             0             0             0             0
+ SMP6               0             0             0             0             0
+ SMP7               0             0             0             0             0
+ BAS5               0             0             0             0             0
+ BAS6               0             0             0             0             0
+ BAS7               0             0             0             0             0
+
+
+           LAMBDA
+              WMH_5         WMH_6         WMH_7         FLK6          FLK5
+              ________      ________      ________      ________      ________
+ LOGK5              0             0             0             0             0
+ LOGK6              0             0             0             0             0
+ SMP5               0             0             0             0             0
+ SMP6               0             0             0             0             0
+ SMP7               0             0             0             0             0
+ BAS5               0             0             0             0             0
+ BAS6               0             0             0             0             0
+ BAS7               0             0             0             0             0
+
+
+           LAMBDA
+              MOD_DD6       MOD_DD5
+              ________      ________
+ LOGK5              0             0
+ LOGK6              0             0
+ SMP5               0             0
+ SMP6               0             0
+ SMP7               0             0
+ BAS5               0             0
+ BAS6               0             0
+ BAS7               0             0
+
+
+           THETA
+              LOGK5         LOGK6         SMP5          SMP6          SMP7
+              ________      ________      ________      ________      ________
+ LOGK5              0
+ LOGK6              0             0
+ SMP5               0             0             0
+ SMP6               0             0             0             0
+ SMP7               0             0             0             0             0
+ BAS5               0             0             0             0             0
+ BAS6               0             0             0             0             0
+ BAS7               0             0             0             0             0
+
+
+           THETA
+              BAS5          BAS6          BAS7
+              ________      ________      ________
+ BAS5               0
+ BAS6               0             0
+ BAS7               0             0             0
+
+
+           ALPHA
+              RISM          RIMH          WSM_5         WSM_6         WSM_7
+              ________      ________      ________      ________      ________
+                    0             0             0             0             0
+
+
+           ALPHA
+              WMH_5         WMH_6         WMH_7         FLK6          FLK5
+              ________      ________      ________      ________      ________
+                    0             0             0             0             0
+
+
+           ALPHA
+              MOD_DD6       MOD_DD5
+              ________      ________
+                    0             0
+
+
+           BETA
+              RISM          RIMH          WSM_5         WSM_6         WSM_7
+              ________      ________      ________      ________      ________
+ RISM               0             0             0             0             0
+ RIMH               0             0             0             0             0
+ WSM_5              0             0             0             0             0
+ WSM_6              0             0             9             0             0
+ WSM_7              0             0             0            11             0
+ WMH_5              0             0             0             0             0
+ WMH_6              0             0            13             0             0
+ WMH_7              0             0             0            16             0
+ FLK6               0             0             0             0             0
+ FLK5               0             0             0             0             0
+ MOD_DD6            0             0             0             0             0
+ MOD_DD5            0             0             0             0             0
+
+
+           BETA
+              WMH_5         WMH_6         WMH_7         FLK6          FLK5
+              ________      ________      ________      ________      ________
+ RISM               0             0             0             0             0
+ RIMH               0             0             0             0             0
+ WSM_5              0             0             0             0             0
+ WSM_6             10             0             0             0             0
+ WSM_7              0            12             0             0             0
+ WMH_5              0             0             0             0             0
+ WMH_6             14             0             0             0             0
+ WMH_7              0            17             0             0             0
+ FLK6               0             0             0             0             0
+ FLK5               0             0             0             0             0
+ MOD_DD6            0             0             0             0             0
+ MOD_DD5            0             0             0             0             0
+
+
+           BETA
+              MOD_DD6       MOD_DD5
+              ________      ________
+ RISM               0             0
+ RIMH               0             0
+ WSM_5              0             0
+ WSM_6              0             0
+ WSM_7              0             0
+ WMH_5              0             0
+ WMH_6              0            15
+ WMH_7             15             0
+ FLK6               0             0
+ FLK5               0             0
+ MOD_DD6            0             0
+ MOD_DD5            0             0
+
+
+           PSI
+              RISM          RIMH          WSM_5         WSM_6         WSM_7
+              ________      ________      ________      ________      ________
+ RISM              18
+ RIMH              19            20
+ WSM_5              0             0            21
+ WSM_6              0             0             0            22
+ WSM_7              0             0             0             0            23
+ WMH_5              0             0            24             0             0
+ WMH_6              0             0             0            26             0
+ WMH_7              0             0             0             0            28
+ FLK6               0             0             0             0             0
+ FLK5               0             0             0             0             0
+ MOD_DD6            0             0             0             0             0
+ MOD_DD5            0             0             0             0             0
+
+
+           PSI
+              WMH_5         WMH_6         WMH_7         FLK6          FLK5
+              ________      ________      ________      ________      ________
+ WMH_5             25
+ WMH_6              0            27
+ WMH_7              0             0            29
+ FLK6               0             0             0            30
+ FLK5               0             0             0             0            31
+ MOD_DD6            0             0             0             0             0
+ MOD_DD5            0             0             0             0             0
+
+
+           PSI
+              MOD_DD6       MOD_DD5
+              ________      ________
+ MOD_DD6            0
+ MOD_DD5            0             0
+
+
+     STARTING VALUES
+
+
+           NU
+              LOGK5         LOGK6         SMP5          SMP6          SMP7
+              ________      ________      ________      ________      ________
+                4.211         4.987         1.369         1.511         2.006
+
+
+           NU
+              BAS5          BAS6          BAS7
+              ________      ________      ________
+               38.476        37.525        38.463
+
+
+           LAMBDA
+              RISM          RIMH          WSM_5         WSM_6         WSM_7
+              ________      ________      ________      ________      ________
+ LOGK5          0.000         0.000         0.000         0.000         0.000
+ LOGK6          0.000         0.000         0.000         0.000         0.000
+ SMP5           1.000         0.000         1.000         0.000         0.000
+ SMP6           1.000         0.000         0.000         1.000         0.000
+ SMP7           1.000         0.000         0.000         0.000         1.000
+ BAS5           0.000         1.000         0.000         0.000         0.000
+ BAS6           0.000         1.000         0.000         0.000         0.000
+ BAS7           0.000         1.000         0.000         0.000         0.000
+
+
+           LAMBDA
+              WMH_5         WMH_6         WMH_7         FLK6          FLK5
+              ________      ________      ________      ________      ________
+ LOGK5          0.000         0.000         0.000         0.000         1.000
+ LOGK6          0.000         0.000         0.000         1.000         0.000
+ SMP5           0.000         0.000         0.000         0.000         0.000
+ SMP6           0.000         0.000         0.000         0.000         0.000
+ SMP7           0.000         0.000         0.000         0.000         0.000
+ BAS5           1.000         0.000         0.000         0.000         0.000
+ BAS6           0.000         1.000         0.000         0.000         0.000
+ BAS7           0.000         0.000         1.000         0.000         0.000
+
+
+           LAMBDA
+              MOD_DD6       MOD_DD5
+              ________      ________
+ LOGK5          0.000         0.000
+ LOGK6          0.000         0.000
+ SMP5           0.000         0.000
+ SMP6           0.000         0.000
+ SMP7           0.000         0.000
+ BAS5           0.000         0.000
+ BAS6           0.000         0.000
+ BAS7           0.000         0.000
+
+
+           THETA
+              LOGK5         LOGK6         SMP5          SMP6          SMP7
+              ________      ________      ________      ________      ________
+ LOGK5          0.200
+ LOGK6          0.000         0.200
+ SMP5           0.000         0.000         0.200
+ SMP6           0.000         0.000         0.000         0.200
+ SMP7           0.000         0.000         0.000         0.000         0.200
+ BAS5           0.000         0.000         0.000         0.000         0.000
+ BAS6           0.000         0.000         0.000         0.000         0.000
+ BAS7           0.000         0.000         0.000         0.000         0.000
+
+
+           THETA
+              BAS5          BAS6          BAS7
+              ________      ________      ________
+ BAS5           0.200
+ BAS6           0.000         0.200
+ BAS7           0.000         0.000         0.200
+
+
+           ALPHA
+              RISM          RIMH          WSM_5         WSM_6         WSM_7
+              ________      ________      ________      ________      ________
+                0.000         0.000         0.000         0.000         0.000
+
+
+           ALPHA
+              WMH_5         WMH_6         WMH_7         FLK6          FLK5
+              ________      ________      ________      ________      ________
+                0.000         0.000         0.000         0.000         0.000
+
+
+           ALPHA
+              MOD_DD6       MOD_DD5
+              ________      ________
+                0.000         0.000
+
+
+           BETA
+              RISM          RIMH          WSM_5         WSM_6         WSM_7
+              ________      ________      ________      ________      ________
+ RISM           0.000         0.000         0.000         0.000         0.000
+ RIMH           0.000         0.000         0.000         0.000         0.000
+ WSM_5          0.000         0.000         0.000         0.000         0.000
+ WSM_6          0.000         0.000         0.000         0.000         0.000
+ WSM_7          0.000         0.000         0.000         0.000         0.000
+ WMH_5          0.000         0.000         0.000         0.000         0.000
+ WMH_6          0.000         0.000         0.000         0.000         0.000
+ WMH_7          0.000         0.000         0.000         0.000         0.000
+ FLK6           0.000         0.000         0.000         0.000         0.000
+ FLK5           0.000         0.000         0.000         0.000         0.000
+ MOD_DD6        0.000         0.000         0.000         0.000         0.000
+ MOD_DD5        0.000         0.000         0.000         0.000         0.000
+
+
+           BETA
+              WMH_5         WMH_6         WMH_7         FLK6          FLK5
+              ________      ________      ________      ________      ________
+ RISM           0.000         0.000         0.000         0.000         0.000
+ RIMH           0.000         0.000         0.000         0.000         0.000
+ WSM_5          0.000         0.000         0.000         0.000         0.000
+ WSM_6          0.000         0.000         0.000         0.000         0.000
+ WSM_7          0.000         0.000         0.000         0.000         0.000
+ WMH_5          0.000         0.000         0.000         0.000         0.000
+ WMH_6          0.000         0.000         0.000         0.000         0.000
+ WMH_7          0.000         0.000         0.000         0.000         0.000
+ FLK6           0.000         0.000         0.000         0.000         0.000
+ FLK5           0.000         0.000         0.000         0.000         0.000
+ MOD_DD6        0.000         0.000         0.000         0.000         0.000
+ MOD_DD5        0.000         0.000         0.000         0.000         0.000
+
+
+           BETA
+              MOD_DD6       MOD_DD5
+              ________      ________
+ RISM           0.000         0.000
+ RIMH           0.000         0.000
+ WSM_5          0.000         0.000
+ WSM_6          0.000         0.000
+ WSM_7          0.000         0.000
+ WMH_5          0.000         0.000
+ WMH_6          0.000         0.000
+ WMH_7          0.000         0.000
+ FLK6           0.000         0.000
+ FLK5           0.000         0.000
+ MOD_DD6        0.000         0.000
+ MOD_DD5        0.000         0.000
+
+
+           PSI
+              RISM          RIMH          WSM_5         WSM_6         WSM_7
+              ________      ________      ________      ________      ________
+ RISM           1.000
+ RIMH           0.000         1.000
+ WSM_5          0.000         0.000         1.000
+ WSM_6          0.000         0.000         0.000         1.000
+ WSM_7          0.000         0.000         0.000         0.000         1.000
+ WMH_5          0.000         0.000         0.000         0.000         0.000
+ WMH_6          0.000         0.000         0.000         0.000         0.000
+ WMH_7          0.000         0.000         0.000         0.000         0.000
+ FLK6           0.000         0.000         0.000         0.000         0.000
+ FLK5           0.000         0.000         0.000         0.000         0.000
+ MOD_DD6        0.000         0.000         0.000         0.000         0.000
+ MOD_DD5        0.000         0.000         0.000         0.000         0.000
+
+
+           PSI
+              WMH_5         WMH_6         WMH_7         FLK6          FLK5
+              ________      ________      ________      ________      ________
+ WMH_5          1.000
+ WMH_6          0.000         1.000
+ WMH_7          0.000         0.000         1.000
+ FLK6           0.000         0.000         0.000         1.000
+ FLK5           0.000         0.000         0.000         0.000         1.000
+ MOD_DD6        0.000         0.000         0.000         0.000         0.000
+ MOD_DD5        0.000         0.000         0.000         0.000         0.000
+
+
+           PSI
+              MOD_DD6       MOD_DD5
+              ________      ________
+ MOD_DD6        0.000
+ MOD_DD5        0.000         0.000
+
+
+
+     PRIORS FOR ALL PARAMETERS            PRIOR MEAN      PRIOR VARIANCE     PRIOR STD. DEV.
+
+     Parameter 1~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 2~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 3~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 4~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 5~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 6~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 7~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 8~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 9~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 10~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 11~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 12~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 13~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 14~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 15~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 16~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 17~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 18~IW(0.000,-3)             infinity            infinity            infinity
+     Parameter 19~IW(0.000,-3)             infinity            infinity            infinity
+     Parameter 20~IW(0.000,-3)             infinity            infinity            infinity
+     Parameter 21~IW(0.000,-3)             infinity            infinity            infinity
+     Parameter 22~IW(0.000,-3)             infinity            infinity            infinity
+     Parameter 23~IW(0.000,-3)             infinity            infinity            infinity
+     Parameter 24~IW(0.000,-3)             infinity            infinity            infinity
+     Parameter 25~IW(0.000,-3)             infinity            infinity            infinity
+     Parameter 26~IW(0.000,-3)             infinity            infinity            infinity
+     Parameter 27~IW(0.000,-3)             infinity            infinity            infinity
+     Parameter 28~IW(0.000,-3)             infinity            infinity            infinity
+     Parameter 29~IW(0.000,-3)             infinity            infinity            infinity
+     Parameter 30~IG(-1.000,0.000)         infinity            infinity            infinity
+     Parameter 31~IG(-1.000,0.000)         infinity            infinity            infinity
+
+
+TECHNICAL 8 OUTPUT
+
+
+   TECHNICAL 8 OUTPUT FOR BAYES ESTIMATION
+
+     CHAIN    BSEED
+     1        0
+     2        285380
+
+                     POTENTIAL       PARAMETER WITH
+     ITERATION    SCALE REDUCTION      HIGHEST PSR
+     100              4.399               15
+     200              4.402               17
+     300              2.673               17
+     400              2.128               16
+     500              1.417               16
+     600              1.286               20
+     700              1.586               20
+     800              1.132               20
+     900              1.138               19
+     1000             1.053               2
+     1100             1.061               2
+     1200             1.076               2
+     1300             1.089               2
+     1400             1.135               19
+     1500             1.261               19
+     1600             1.130               19
+     1700             1.078               12
+     1800             1.108               20
+     1900             1.226               20
+     2000             1.303               20
+     2100             1.282               20
+     2200             1.273               20
+     2300             1.269               20
+     2400             1.180               16
+     2500             1.183               16
+     2600             1.197               16
+     2700             1.191               16
+     2800             1.250               19
+     2900             1.308               19
+     3000             1.327               19
+     3100             1.339               19
+     3200             1.349               19
+     3300             1.327               19
+     3400             1.287               19
+     3500             1.241               19
+     3600             1.235               16
+     3700             1.210               16
+     3800             1.179               16
+     3900             1.159               16
+     4000             1.116               16
+     4100             1.077               16
+     4200             1.075               16
+     4300             1.054               12
+     4400             1.048               12
+     4500             1.036               12
+     4600             1.029               12
+     4700             1.027               25
+     4800             1.027               25
+     4900             1.029               9
+     5000             1.029               9
+     5100             1.031               9
+     5200             1.030               9
+     5300             1.024               9
+     5400             1.025               20
+     5500             1.042               20
+     5600             1.067               20
+     5700             1.076               20
+     5800             1.088               20
+     5900             1.082               20
+     6000             1.088               20
+     6100             1.098               20
+     6200             1.099               20
+     6300             1.103               20
+     6400             1.101               20
+     6500             1.108               20
+     6600             1.120               20
+     6700             1.122               20
+     6800             1.114               20
+     6900             1.110               20
+     7000             1.096               20
+     7100             1.067               20
+     7200             1.050               20
+     7300             1.043               20
+     7400             1.034               20
+     7500             1.028               20
+     7600             1.023               20
+     7700             1.024               20
+     7800             1.014               20
+     7900             1.012               12
+     8000             1.009               12
+     8100             1.011               10
+     8200             1.013               10
+     8300             1.017               10
+     8400             1.019               10
+     8500             1.015               10
+     8600             1.016               6
+     8700             1.018               6
+     8800             1.022               14
+     8900             1.023               14
+     9000             1.034               14
+     9100             1.041               14
+     9200             1.043               14
+     9300             1.043               14
+     9400             1.039               14
+     9500             1.041               14
+     9600             1.044               17
+     9700             1.045               17
+     9800             1.042               14
+     9900             1.042               14
+     10000            1.039               14
+
+
+DIAGRAM INFORMATION
+
+  Use View Diagram under the Diagram menu in the Mplus Editor to view the diagram.
+  If running Mplus from the Mplus Diagrammer, the diagram opens automatically.
+
+  Diagram output
+    c:\users\lg05\owncloud - lukas gunschera@cloud.mrc-cbu.cam.ac.uk\dmh_lukas\projects\2024_cognitive_phenotype\code\lc
+
+     Beginning Time:  10:02:26
+        Ending Time:  10:32:52
+       Elapsed Time:  00:30:26
+
+
+
+MUTHEN & MUTHEN
+3463 Stoner Ave.
+Los Angeles, CA  90066
+
+Tel: (310) 391-9971
+Fax: (310) 391-8971
+Web: www.StatModel.com
+Support: Support@StatModel.com
+
+Copyright (c) 1998-2023 Muthen & Muthen

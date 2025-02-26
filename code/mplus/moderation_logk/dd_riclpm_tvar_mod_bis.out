@@ -1,0 +1,1402 @@
+Mplus VERSION 8.9
+MUTHEN & MUTHEN
+10/21/2024  11:19 AM
+
+INPUT INSTRUCTIONS
+
+  TITLE: RI-CLPM for LCID Social Media and BIS Subscale (delay discounting logk)
+         !between-person component of time-varying moderator
+
+  DATA:
+      FILE = "C:\Users\lg05\ownCloud - Lukas Gunschera@cloud.mrc-cbu.cam.ac.uk\
+      dmh_lukas\projects\2024_cognitive_phenotype\data\lcid\mplus\
+      dd_delaydiscount\lcid_logk_bis.dat";
+
+  VARIABLE:
+      !variable names included in dataset
+      NAMES ARE logk2 logk3 logk4 logk5 logk6 !delay discounting parameter
+                smt5 smt6 smt7         !social media use total
+                smp5 smp6 smp7         !social media use posting and scrolling
+                smm5 smm6 smm7         !social media use messaging
+                smv5 smv6 smv7         !social media use video watching
+                eat5 eat6 eat7         !eatq-ec total
+                bis5 bis6 bis7         !bis/bas behavioural inhibition
+                bas5 bas6 bas7         !bis/bas behavioural activation
+                bbt5 bbt6 bbt7         !bis/bas total
+                hsc5 hsc6 hsc7         !highly sensitive child scale total
+                sdq5 sdq6 sdq7         !strengths and difficulties total
+                sdqi5 sdqi6 sdqi7      !strengths and difficulties internalising
+                sdqe5 sdqe6 sdqe7      !strengths and difficulties externalising
+
+                csm5 csm6              !compulsive social media use [aux]
+                sex ses edu1           !demographics [aux]
+                bsi6 bsi7              !brief symptom inventory total [aux]
+                bsid6 bsid7            !brief symptom inventory depression [aux]
+                bsia6 bsia7            !brief symptom inventory anxiety [aux]
+                pdsi2 pds5 pds6 pds7;  !pubertal development score [aux]
+
+      !variables used in analyses
+      USEVARIABLES ARE logk5 logk6
+                       smp5 smp6 smp7
+                       bis5 bis6 bis7;
+
+      !missingness marker in dataset
+      MISSING ARE ALL (-999);
+
+      !auxiliary variables to establish MAR
+      AUXILIARY ARE csm5 csm6 sex ses edu1
+                    bsi6 bsi7 bsid6 bsid7 bsia6 bsia7
+                    pdsi2 pds5 pds6 pds7;
+
+  ANALYSIS:
+      Estimator = BAYES;
+      Type = random;          !required when including interaction effects
+      model = nocovariances;  !covariances should not be estimated per default
+      processors = 2;         !multiple processors used to increase computing speed
+      chains = 2;             !number of MCMC chains
+      thin = 10;              !save every 10th iteration
+
+      fbiter = 50000;        !PSR < 1.1 at 24,500 iterations (2x to 50,000)
+
+   MODEL:
+      !Create between components (random intercepts)
+      RIsm BY smp5@1 smp6@1 smp7@1;
+      RImh BY bis5@1 bis6@1 bis7@1;
+
+      !Create within-person centred variables
+      wsm_5 BY smp5@1;
+      wsm_6 BY smp6@1;
+      wsm_7 BY smp7@1;
+
+      wmh_5 BY bis5@1;
+      wmh_6 BY bis6@1;
+      wmh_7 BY bis7@1;
+
+      FLK6 BY logk6@1;
+      FLK5 BY logk5@1;
+
+      !Constrain measurement error variances to zero
+      !or close to zero to allow for reasonable imputation times
+      smp5-bis7@0.2;
+      logk6@0; logk5@0;
+
+      !Estimate the lagged effects between the within-person centred variables
+      wsm_7 ON wsm_6 wmh_6;
+      wmh_7 ON wsm_6 wmh_6;
+
+      wsm_6 ON wsm_5 wmh_5;
+      wmh_6 ON wsm_5 wmh_5;
+
+      !Create interaction term interacting within-person centred bisbas score
+      !with time-invariant delay discounting parameter k
+      mod_dd6 | wsm_6 XWITH FLK6;
+      mod_dd5 | wsm_5 XWITH FLK5;
+
+      !predict within-person centred emotional problems with interaction
+  	wmh_7 ON mod_dd6 (a);
+      wmh_6 ON mod_dd5 (a);
+
+      !Estimate covariance between random intercepts
+      RIsm WITH RImh;
+
+      !Estimate the covariance between the within-person
+      !components at the first wave
+      wmh_5 WITH wsm_5;
+
+      !Estimate the covariances between the residuals of
+      !the within-person components
+      wmh_6 WITH wsm_6;
+      wmh_7 WITH wsm_7;
+
+  OUTPUT:
+      TECH8;    !get PSR values
+      STDYX;    !get standardised output
+
+
+
+INPUT READING TERMINATED NORMALLY
+
+
+
+RI-CLPM for LCID Social Media and BIS Subscale (delay discounting logk)
+
+SUMMARY OF ANALYSIS
+
+Number of groups                                                 1
+Number of observations                                         300
+
+Number of dependent variables                                    8
+Number of independent variables                                  0
+Number of continuous latent variables                           12
+
+Observed dependent variables
+
+  Continuous
+   LOGK5       LOGK6       SMP5        SMP6        SMP7        BIS5
+   BIS6        BIS7
+
+Observed auxiliary variables
+   CSM5        CSM6        SEX         SES         EDU1        BSI6
+   BSI7        BSID6       BSID7       BSIA6       BSIA7       PDSI2
+   PDS5        PDS6        PDS7
+
+Continuous latent variables
+   RISM        RIMH        WSM_5       WSM_6       WSM_7       WMH_5
+   WMH_6       WMH_7       FLK6        FLK5        MOD_DD6     MOD_DD5
+
+
+Estimator                                                    BAYES
+Specifications for Bayesian Estimation
+  Point estimate                                            MEDIAN
+  Number of Markov chain Monte Carlo (MCMC) chains               2
+  Random seed for the first chain                                0
+  Starting value information                           UNPERTURBED
+  Algorithm used for Markov chain Monte Carlo           GIBBS(PX1)
+  Fixed number of iterations                                 50000
+  K-th iteration used for thinning                              10
+
+Input data file(s)
+  C:\Users\lg05\ownCloud - Lukas Gunschera@cloud.mrc-cbu.cam.ac.uk\dmh_lukas\pro
+Input data format  FREE
+
+
+SUMMARY OF DATA
+
+
+
+COVARIANCE COVERAGE OF DATA
+
+Minimum covariance coverage value   0.100
+
+     Number of missing data patterns            32
+
+
+     PROPORTION OF DATA PRESENT
+
+
+           Covariance Coverage
+              LOGK5         LOGK6         SMP5          SMP6          SMP7
+              ________      ________      ________      ________      ________
+ LOGK5          0.787
+ LOGK6          0.203         0.227
+ SMP5           0.777         0.217         0.867
+ SMP6           0.630         0.227         0.697         0.757
+ SMP7           0.380         0.097         0.437         0.383         0.543
+ BIS5           0.690         0.193         0.767         0.630         0.383
+ BIS6           0.607         0.227         0.670         0.730         0.367
+ BIS7           0.380         0.097         0.437         0.380         0.540
+
+
+           Covariance Coverage
+              BIS5          BIS6          BIS7
+              ________      ________      ________
+ BIS5           0.770
+ BIS6           0.607         0.730
+ BIS7           0.383         0.363         0.540
+
+
+
+UNIVARIATE SAMPLE STATISTICS
+
+
+     UNIVARIATE HIGHER-ORDER MOMENT DESCRIPTIVE STATISTICS
+
+         Variable/         Mean/     Skewness/   Minimum/ % with                Percentiles
+        Sample Size      Variance    Kurtosis    Maximum  Min/Max      20%/60%    40%/80%    Median
+
+     LOGK5                 4.211       0.461       0.184    0.42%       1.992      3.249      3.881
+             236.000       5.763      -0.443      10.192    0.42%       4.638      6.307
+     LOGK6                 4.987       0.093       0.312    1.47%       2.434      4.315      5.145
+              68.000       6.163      -0.768      10.295    1.47%       5.603      6.959
+     SMP5                  1.369       1.000       0.000   27.31%       0.000      1.000      1.000
+             260.000       1.594       0.602       5.000    3.08%       1.000      2.000
+     SMP6                  1.511       0.837       0.000   20.26%       0.000      1.000      1.000
+             227.000       1.492       0.387       5.000    3.08%       2.000      3.000
+     SMP7                  2.006       0.563       0.000   14.11%       1.000      1.000      2.000
+             163.000       2.117      -0.499       5.000    9.20%       2.000      3.000
+     BIS5                 18.844      -0.094       8.000    0.43%      16.000     18.000     19.000
+             231.000      13.283      -0.044      28.000    0.87%      20.000     22.000
+     BIS6                 18.416      -0.218       7.000    0.46%      16.000     18.000     18.000
+             219.000      13.594       0.149      27.000    2.28%      19.000     21.000
+     BIS7                 19.160      -0.132       7.000    0.62%      16.000     18.000     19.000
+             162.000      17.147      -0.099      28.000    1.23%      20.000     23.000
+
+
+THE MODEL ESTIMATION TERMINATED NORMALLY
+
+     USE THE FBITERATIONS OPTION TO INCREASE THE NUMBER OF ITERATIONS BY A FACTOR
+     OF AT LEAST TWO TO CHECK CONVERGENCE AND THAT THE PSR VALUE DOES NOT INCREASE.
+
+
+
+MODEL FIT INFORMATION
+
+Number of Free Parameters                              31
+
+
+
+MODEL RESULTS
+
+                                Posterior  One-Tailed         95% C.I.
+                    Estimate       S.D.      P-Value   Lower 2.5%  Upper 2.5%  Significance
+
+ RISM     BY
+    SMP5               1.000       0.000      0.000       1.000       1.000
+    SMP6               1.000       0.000      0.000       1.000       1.000
+    SMP7               1.000       0.000      0.000       1.000       1.000
+
+ RIMH     BY
+    BIS5               1.000       0.000      0.000       1.000       1.000
+    BIS6               1.000       0.000      0.000       1.000       1.000
+    BIS7               1.000       0.000      0.000       1.000       1.000
+
+ WSM_5    BY
+    SMP5               1.000       0.000      0.000       1.000       1.000
+
+ WSM_6    BY
+    SMP6               1.000       0.000      0.000       1.000       1.000
+
+ WSM_7    BY
+    SMP7               1.000       0.000      0.000       1.000       1.000
+
+ WMH_5    BY
+    BIS5               1.000       0.000      0.000       1.000       1.000
+
+ WMH_6    BY
+    BIS6               1.000       0.000      0.000       1.000       1.000
+
+ WMH_7    BY
+    BIS7               1.000       0.000      0.000       1.000       1.000
+
+ FLK6     BY
+    LOGK6              1.000       0.000      0.000       1.000       1.000
+
+ FLK5     BY
+    LOGK5              1.000       0.000      0.000       1.000       1.000
+
+ WSM_7      ON
+    WSM_6             -0.265       0.309      0.172      -0.965       0.238
+    WMH_6             -0.069       0.081      0.186      -0.231       0.089
+
+ WMH_7      ON
+    WSM_6             -0.761       0.651      0.103      -2.193       0.404
+    WMH_6              0.035       0.228      0.437      -0.476       0.428
+    MOD_DD6           -0.035       0.141      0.402      -0.312       0.248
+
+ WSM_6      ON
+    WSM_5              0.300       0.143      0.025      -0.001       0.552
+    WMH_5              0.015       0.061      0.396      -0.089       0.148
+
+ WMH_6      ON
+    WSM_5             -0.672       0.407      0.050      -1.431       0.137
+    WMH_5              0.104       0.237      0.314      -0.448       0.481
+    MOD_DD5           -0.035       0.141      0.402      -0.312       0.248
+
+ RISM     WITH
+    RIMH               0.272       0.347      0.207      -0.388       0.980
+
+ WMH_5    WITH
+    WSM_5             -0.080       0.386      0.416      -0.869       0.666
+
+ WMH_6    WITH
+    WSM_6              0.054       0.329      0.432      -0.575       0.720
+
+ WMH_7    WITH
+    WSM_7             -0.296       0.549      0.287      -1.429       0.741
+
+ Intercepts
+    LOGK5              4.200       0.151      0.000       3.938       4.514      *
+    LOGK6              4.949       0.320      0.000       4.363       5.479      *
+    SMP5               1.369       0.079      0.000       1.215       1.525      *
+    SMP6               1.521       0.081      0.000       1.364       1.679      *
+    SMP7               1.972       0.118      0.000       1.741       2.205      *
+    BIS5              18.817       0.239      0.000      18.358      19.286      *
+    BIS6              18.372       0.245      0.000      17.891      18.858      *
+    BIS7              19.070       0.321      0.000      18.447      19.698      *
+
+ Variances
+    RISM               0.513       0.166      0.000       0.151       0.809      *
+    RIMH               7.728       1.663      0.000       3.901      10.638      *
+    WSM_5              0.956       0.189      0.000       0.647       1.383      *
+    WMH_5              6.240       1.676      0.000       3.430      10.138      *
+    FLK6               6.511       1.037      0.000       4.747       8.762      *
+    FLK5               5.835       0.546      0.000       4.897       7.049      *
+
+ Residual Variances
+    LOGK5              0.001       0.000      0.000       0.001       0.001
+    LOGK6              0.001       0.000      0.000       0.001       0.001
+    SMP5               0.200       0.000      0.000       0.200       0.200
+    SMP6               0.200       0.000      0.000       0.200       0.200
+    SMP7               0.200       0.000      0.000       0.200       0.200
+    BIS5               0.200       0.000      0.000       0.200       0.200
+    BIS6               0.200       0.000      0.000       0.200       0.200
+    BIS7               0.200       0.000      0.000       0.200       0.200
+    WSM_6              0.708       0.142      0.000       0.436       0.996      *
+    WSM_7              1.461       0.334      0.000       0.784       2.114      *
+    WMH_6              5.606       1.504      0.000       2.610       8.514      *
+    WMH_7              9.386       1.832      0.000       5.976      13.212      *
+
+
+STANDARDIZED MODEL RESULTS
+
+
+STDYX Standardization
+
+                                Posterior  One-Tailed         95% C.I.
+                    Estimate       S.D.      P-Value   Lower 2.5%  Upper 2.5%  Significance
+ RISM     BY
+    SMP5               0.556       0.095      0.000       0.303       0.681      *
+    SMP6               0.577       0.104      0.000       0.310       0.724      *
+    SMP7               0.469       0.082      0.000       0.258       0.586      *
+
+ RIMH     BY
+    BIS5               0.740       0.078      0.000       0.533       0.854      *
+    BIS6               0.733       0.082      0.000       0.519       0.849      *
+    BIS7               0.649       0.065      0.000       0.471       0.736      *
+
+ WSM_5    BY
+    SMP5               0.756       0.062      0.000       0.644       0.887      *
+
+ WSM_6    BY
+    SMP6               0.733       0.076      0.000       0.582       0.881      *
+
+ WSM_7    BY
+    SMP7               0.833       0.043      0.000       0.752       0.920      *
+
+ WMH_5    BY
+    BIS5               0.663       0.081      0.000       0.506       0.838      *
+
+ WMH_6    BY
+    BIS6               0.670       0.083      0.000       0.515       0.847      *
+
+ WMH_7    BY
+    BIS7               0.754       0.051      0.000       0.668       0.876      *
+
+ FLK6     BY
+    LOGK6              1.000       0.000      0.000       1.000       1.000      *
+
+ FLK5     BY
+    LOGK5              1.000       0.000      0.000       1.000       1.000      *
+
+ WSM_7      ON
+    WSM_6             -0.191       0.205      0.172      -0.615       0.181
+    WMH_6             -0.139       0.159      0.186      -0.453       0.174
+
+ WMH_7      ON
+    WSM_6             -0.215       0.171      0.103      -0.557       0.114
+    WMH_6              0.027       0.175      0.437      -0.330       0.360
+    MOD_DD6           -0.025       0.101      0.402      -0.230       0.168
+
+ WSM_6      ON
+    WSM_5              0.323       0.144      0.025      -0.001       0.556
+    WMH_5              0.041       0.161      0.396      -0.253       0.373
+
+ WMH_6      ON
+    WSM_5             -0.257       0.153      0.050      -0.535       0.057
+    WMH_5              0.102       0.221      0.314      -0.432       0.454
+    MOD_DD5           -0.032       0.130      0.402      -0.281       0.237
+
+ RISM     WITH
+    RIMH               0.142       0.215      0.207      -0.202       0.662
+
+ WMH_5    WITH
+    WSM_5             -0.034       0.156      0.416      -0.323       0.286
+
+ WMH_6    WITH
+    WSM_6              0.027       0.181      0.432      -0.307       0.414
+
+ WMH_7    WITH
+    WSM_7             -0.081       0.163      0.287      -0.464       0.187
+
+ Intercepts
+    LOGK5              1.741       0.103      0.000       1.539       1.941      *
+    LOGK6              1.942       0.180      0.000       1.598       2.298      *
+    SMP5               1.060       0.078      0.000       0.909       1.213      *
+    SMP6               1.225       0.086      0.000       1.058       1.395      *
+    SMP7               1.296       0.108      0.000       1.084       1.511      *
+    BIS5               5.010       0.245      0.000       4.539       5.502      *
+    BIS6               4.835       0.241      0.000       4.365       5.309      *
+    BIS7               4.451       0.266      0.000       3.940       4.981      *
+
+ Variances
+    RISM               1.000       0.000      0.000       1.000       1.000
+    RIMH               1.000       0.000      0.000       1.000       1.000
+    WSM_5              1.000       0.000      0.000       1.000       1.000
+    WMH_5              1.000       0.000      0.000       1.000       1.000
+    FLK6               1.000       0.000      0.000       1.000       1.000
+    FLK5               1.000       0.000      0.000       1.000       1.000
+
+ Residual Variances
+    LOGK5              0.000       0.000      0.000       0.000       0.000      *
+    LOGK6              0.000       0.000      0.000       0.000       0.000      *
+    SMP5               0.120       0.011      0.000       0.100       0.142      *
+    SMP6               0.130       0.012      0.000       0.107       0.155      *
+    SMP7               0.086       0.010      0.000       0.068       0.107      *
+    BIS5               0.014       0.001      0.000       0.012       0.017      *
+    BIS6               0.014       0.001      0.000       0.011       0.017      *
+    BIS7               0.011       0.001      0.000       0.009       0.014      *
+    WSM_6              0.862       0.088      0.000       0.658       0.986      *
+    WSM_7              0.920       0.109      0.000       0.591       0.997      *
+    WMH_6              0.855       0.102      0.000       0.608       0.982      *
+    WMH_7              0.906       0.091      0.000       0.652       0.992      *
+
+
+R-SQUARE
+
+                                Posterior  One-Tailed         95% C.I.
+    Variable        Estimate       S.D.      P-Value   Lower 2.5%  Upper 2.5%
+
+    LOGK5              1.000       0.000      0.000       1.000       1.000
+    LOGK6              1.000       0.000      0.000       1.000       1.000
+    SMP5               0.880       0.011      0.000       0.858       0.900
+    SMP6               0.870       0.012      0.000       0.845       0.893
+    SMP7               0.914       0.010      0.000       0.893       0.932
+    BIS5               0.986       0.001      0.000       0.983       0.988
+    BIS6               0.986       0.001      0.000       0.983       0.989
+    BIS7               0.989       0.001      0.000       0.986       0.991
+
+                                Posterior  One-Tailed         95% C.I.
+    Variable        Estimate       S.D.      P-Value   Lower 2.5%  Upper 2.5%
+
+    WSM_6              0.138       0.088      0.000       0.014       0.342
+    WSM_7              0.080       0.109      0.000       0.003       0.409
+    WMH_6              0.145       0.102      0.000       0.018       0.392
+    WMH_7              0.094       0.091      0.000       0.008       0.348
+
+
+TECHNICAL 1 OUTPUT
+
+
+     PARAMETER SPECIFICATION
+
+
+           NU
+              LOGK5         LOGK6         SMP5          SMP6          SMP7
+              ________      ________      ________      ________      ________
+                    1             2             3             4             5
+
+
+           NU
+              BIS5          BIS6          BIS7
+              ________      ________      ________
+                    6             7             8
+
+
+           LAMBDA
+              RISM          RIMH          WSM_5         WSM_6         WSM_7
+              ________      ________      ________      ________      ________
+ LOGK5              0             0             0             0             0
+ LOGK6              0             0             0             0             0
+ SMP5               0             0             0             0             0
+ SMP6               0             0             0             0             0
+ SMP7               0             0             0             0             0
+ BIS5               0             0             0             0             0
+ BIS6               0             0             0             0             0
+ BIS7               0             0             0             0             0
+
+
+           LAMBDA
+              WMH_5         WMH_6         WMH_7         FLK6          FLK5
+              ________      ________      ________      ________      ________
+ LOGK5              0             0             0             0             0
+ LOGK6              0             0             0             0             0
+ SMP5               0             0             0             0             0
+ SMP6               0             0             0             0             0
+ SMP7               0             0             0             0             0
+ BIS5               0             0             0             0             0
+ BIS6               0             0             0             0             0
+ BIS7               0             0             0             0             0
+
+
+           LAMBDA
+              MOD_DD6       MOD_DD5
+              ________      ________
+ LOGK5              0             0
+ LOGK6              0             0
+ SMP5               0             0
+ SMP6               0             0
+ SMP7               0             0
+ BIS5               0             0
+ BIS6               0             0
+ BIS7               0             0
+
+
+           THETA
+              LOGK5         LOGK6         SMP5          SMP6          SMP7
+              ________      ________      ________      ________      ________
+ LOGK5              0
+ LOGK6              0             0
+ SMP5               0             0             0
+ SMP6               0             0             0             0
+ SMP7               0             0             0             0             0
+ BIS5               0             0             0             0             0
+ BIS6               0             0             0             0             0
+ BIS7               0             0             0             0             0
+
+
+           THETA
+              BIS5          BIS6          BIS7
+              ________      ________      ________
+ BIS5               0
+ BIS6               0             0
+ BIS7               0             0             0
+
+
+           ALPHA
+              RISM          RIMH          WSM_5         WSM_6         WSM_7
+              ________      ________      ________      ________      ________
+                    0             0             0             0             0
+
+
+           ALPHA
+              WMH_5         WMH_6         WMH_7         FLK6          FLK5
+              ________      ________      ________      ________      ________
+                    0             0             0             0             0
+
+
+           ALPHA
+              MOD_DD6       MOD_DD5
+              ________      ________
+                    0             0
+
+
+           BETA
+              RISM          RIMH          WSM_5         WSM_6         WSM_7
+              ________      ________      ________      ________      ________
+ RISM               0             0             0             0             0
+ RIMH               0             0             0             0             0
+ WSM_5              0             0             0             0             0
+ WSM_6              0             0             9             0             0
+ WSM_7              0             0             0            11             0
+ WMH_5              0             0             0             0             0
+ WMH_6              0             0            13             0             0
+ WMH_7              0             0             0            16             0
+ FLK6               0             0             0             0             0
+ FLK5               0             0             0             0             0
+ MOD_DD6            0             0             0             0             0
+ MOD_DD5            0             0             0             0             0
+
+
+           BETA
+              WMH_5         WMH_6         WMH_7         FLK6          FLK5
+              ________      ________      ________      ________      ________
+ RISM               0             0             0             0             0
+ RIMH               0             0             0             0             0
+ WSM_5              0             0             0             0             0
+ WSM_6             10             0             0             0             0
+ WSM_7              0            12             0             0             0
+ WMH_5              0             0             0             0             0
+ WMH_6             14             0             0             0             0
+ WMH_7              0            17             0             0             0
+ FLK6               0             0             0             0             0
+ FLK5               0             0             0             0             0
+ MOD_DD6            0             0             0             0             0
+ MOD_DD5            0             0             0             0             0
+
+
+           BETA
+              MOD_DD6       MOD_DD5
+              ________      ________
+ RISM               0             0
+ RIMH               0             0
+ WSM_5              0             0
+ WSM_6              0             0
+ WSM_7              0             0
+ WMH_5              0             0
+ WMH_6              0            15
+ WMH_7             15             0
+ FLK6               0             0
+ FLK5               0             0
+ MOD_DD6            0             0
+ MOD_DD5            0             0
+
+
+           PSI
+              RISM          RIMH          WSM_5         WSM_6         WSM_7
+              ________      ________      ________      ________      ________
+ RISM              18
+ RIMH              19            20
+ WSM_5              0             0            21
+ WSM_6              0             0             0            22
+ WSM_7              0             0             0             0            23
+ WMH_5              0             0            24             0             0
+ WMH_6              0             0             0            26             0
+ WMH_7              0             0             0             0            28
+ FLK6               0             0             0             0             0
+ FLK5               0             0             0             0             0
+ MOD_DD6            0             0             0             0             0
+ MOD_DD5            0             0             0             0             0
+
+
+           PSI
+              WMH_5         WMH_6         WMH_7         FLK6          FLK5
+              ________      ________      ________      ________      ________
+ WMH_5             25
+ WMH_6              0            27
+ WMH_7              0             0            29
+ FLK6               0             0             0            30
+ FLK5               0             0             0             0            31
+ MOD_DD6            0             0             0             0             0
+ MOD_DD5            0             0             0             0             0
+
+
+           PSI
+              MOD_DD6       MOD_DD5
+              ________      ________
+ MOD_DD6            0
+ MOD_DD5            0             0
+
+
+     STARTING VALUES
+
+
+           NU
+              LOGK5         LOGK6         SMP5          SMP6          SMP7
+              ________      ________      ________      ________      ________
+                4.211         4.987         1.369         1.511         2.006
+
+
+           NU
+              BIS5          BIS6          BIS7
+              ________      ________      ________
+               18.844        18.416        19.160
+
+
+           LAMBDA
+              RISM          RIMH          WSM_5         WSM_6         WSM_7
+              ________      ________      ________      ________      ________
+ LOGK5          0.000         0.000         0.000         0.000         0.000
+ LOGK6          0.000         0.000         0.000         0.000         0.000
+ SMP5           1.000         0.000         1.000         0.000         0.000
+ SMP6           1.000         0.000         0.000         1.000         0.000
+ SMP7           1.000         0.000         0.000         0.000         1.000
+ BIS5           0.000         1.000         0.000         0.000         0.000
+ BIS6           0.000         1.000         0.000         0.000         0.000
+ BIS7           0.000         1.000         0.000         0.000         0.000
+
+
+           LAMBDA
+              WMH_5         WMH_6         WMH_7         FLK6          FLK5
+              ________      ________      ________      ________      ________
+ LOGK5          0.000         0.000         0.000         0.000         1.000
+ LOGK6          0.000         0.000         0.000         1.000         0.000
+ SMP5           0.000         0.000         0.000         0.000         0.000
+ SMP6           0.000         0.000         0.000         0.000         0.000
+ SMP7           0.000         0.000         0.000         0.000         0.000
+ BIS5           1.000         0.000         0.000         0.000         0.000
+ BIS6           0.000         1.000         0.000         0.000         0.000
+ BIS7           0.000         0.000         1.000         0.000         0.000
+
+
+           LAMBDA
+              MOD_DD6       MOD_DD5
+              ________      ________
+ LOGK5          0.000         0.000
+ LOGK6          0.000         0.000
+ SMP5           0.000         0.000
+ SMP6           0.000         0.000
+ SMP7           0.000         0.000
+ BIS5           0.000         0.000
+ BIS6           0.000         0.000
+ BIS7           0.000         0.000
+
+
+           THETA
+              LOGK5         LOGK6         SMP5          SMP6          SMP7
+              ________      ________      ________      ________      ________
+ LOGK5          0.000
+ LOGK6          0.000         0.000
+ SMP5           0.000         0.000         0.200
+ SMP6           0.000         0.000         0.000         0.200
+ SMP7           0.000         0.000         0.000         0.000         0.200
+ BIS5           0.000         0.000         0.000         0.000         0.000
+ BIS6           0.000         0.000         0.000         0.000         0.000
+ BIS7           0.000         0.000         0.000         0.000         0.000
+
+
+           THETA
+              BIS5          BIS6          BIS7
+              ________      ________      ________
+ BIS5           0.200
+ BIS6           0.000         0.200
+ BIS7           0.000         0.000         0.200
+
+
+           ALPHA
+              RISM          RIMH          WSM_5         WSM_6         WSM_7
+              ________      ________      ________      ________      ________
+                0.000         0.000         0.000         0.000         0.000
+
+
+           ALPHA
+              WMH_5         WMH_6         WMH_7         FLK6          FLK5
+              ________      ________      ________      ________      ________
+                0.000         0.000         0.000         0.000         0.000
+
+
+           ALPHA
+              MOD_DD6       MOD_DD5
+              ________      ________
+                0.000         0.000
+
+
+           BETA
+              RISM          RIMH          WSM_5         WSM_6         WSM_7
+              ________      ________      ________      ________      ________
+ RISM           0.000         0.000         0.000         0.000         0.000
+ RIMH           0.000         0.000         0.000         0.000         0.000
+ WSM_5          0.000         0.000         0.000         0.000         0.000
+ WSM_6          0.000         0.000         0.000         0.000         0.000
+ WSM_7          0.000         0.000         0.000         0.000         0.000
+ WMH_5          0.000         0.000         0.000         0.000         0.000
+ WMH_6          0.000         0.000         0.000         0.000         0.000
+ WMH_7          0.000         0.000         0.000         0.000         0.000
+ FLK6           0.000         0.000         0.000         0.000         0.000
+ FLK5           0.000         0.000         0.000         0.000         0.000
+ MOD_DD6        0.000         0.000         0.000         0.000         0.000
+ MOD_DD5        0.000         0.000         0.000         0.000         0.000
+
+
+           BETA
+              WMH_5         WMH_6         WMH_7         FLK6          FLK5
+              ________      ________      ________      ________      ________
+ RISM           0.000         0.000         0.000         0.000         0.000
+ RIMH           0.000         0.000         0.000         0.000         0.000
+ WSM_5          0.000         0.000         0.000         0.000         0.000
+ WSM_6          0.000         0.000         0.000         0.000         0.000
+ WSM_7          0.000         0.000         0.000         0.000         0.000
+ WMH_5          0.000         0.000         0.000         0.000         0.000
+ WMH_6          0.000         0.000         0.000         0.000         0.000
+ WMH_7          0.000         0.000         0.000         0.000         0.000
+ FLK6           0.000         0.000         0.000         0.000         0.000
+ FLK5           0.000         0.000         0.000         0.000         0.000
+ MOD_DD6        0.000         0.000         0.000         0.000         0.000
+ MOD_DD5        0.000         0.000         0.000         0.000         0.000
+
+
+           BETA
+              MOD_DD6       MOD_DD5
+              ________      ________
+ RISM           0.000         0.000
+ RIMH           0.000         0.000
+ WSM_5          0.000         0.000
+ WSM_6          0.000         0.000
+ WSM_7          0.000         0.000
+ WMH_5          0.000         0.000
+ WMH_6          0.000         0.000
+ WMH_7          0.000         0.000
+ FLK6           0.000         0.000
+ FLK5           0.000         0.000
+ MOD_DD6        0.000         0.000
+ MOD_DD5        0.000         0.000
+
+
+           PSI
+              RISM          RIMH          WSM_5         WSM_6         WSM_7
+              ________      ________      ________      ________      ________
+ RISM           1.000
+ RIMH           0.000         1.000
+ WSM_5          0.000         0.000         1.000
+ WSM_6          0.000         0.000         0.000         1.000
+ WSM_7          0.000         0.000         0.000         0.000         1.000
+ WMH_5          0.000         0.000         0.000         0.000         0.000
+ WMH_6          0.000         0.000         0.000         0.000         0.000
+ WMH_7          0.000         0.000         0.000         0.000         0.000
+ FLK6           0.000         0.000         0.000         0.000         0.000
+ FLK5           0.000         0.000         0.000         0.000         0.000
+ MOD_DD6        0.000         0.000         0.000         0.000         0.000
+ MOD_DD5        0.000         0.000         0.000         0.000         0.000
+
+
+           PSI
+              WMH_5         WMH_6         WMH_7         FLK6          FLK5
+              ________      ________      ________      ________      ________
+ WMH_5          1.000
+ WMH_6          0.000         1.000
+ WMH_7          0.000         0.000         1.000
+ FLK6           0.000         0.000         0.000         1.000
+ FLK5           0.000         0.000         0.000         0.000         1.000
+ MOD_DD6        0.000         0.000         0.000         0.000         0.000
+ MOD_DD5        0.000         0.000         0.000         0.000         0.000
+
+
+           PSI
+              MOD_DD6       MOD_DD5
+              ________      ________
+ MOD_DD6        0.000
+ MOD_DD5        0.000         0.000
+
+
+
+     PRIORS FOR ALL PARAMETERS            PRIOR MEAN      PRIOR VARIANCE     PRIOR STD. DEV.
+
+     Parameter 1~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 2~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 3~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 4~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 5~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 6~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 7~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 8~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 9~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 10~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 11~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 12~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 13~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 14~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 15~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 16~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 17~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 18~IW(0.000,-3)             infinity            infinity            infinity
+     Parameter 19~IW(0.000,-3)             infinity            infinity            infinity
+     Parameter 20~IW(0.000,-3)             infinity            infinity            infinity
+     Parameter 21~IW(0.000,-3)             infinity            infinity            infinity
+     Parameter 22~IW(0.000,-3)             infinity            infinity            infinity
+     Parameter 23~IW(0.000,-3)             infinity            infinity            infinity
+     Parameter 24~IW(0.000,-3)             infinity            infinity            infinity
+     Parameter 25~IW(0.000,-3)             infinity            infinity            infinity
+     Parameter 26~IW(0.000,-3)             infinity            infinity            infinity
+     Parameter 27~IW(0.000,-3)             infinity            infinity            infinity
+     Parameter 28~IW(0.000,-3)             infinity            infinity            infinity
+     Parameter 29~IW(0.000,-3)             infinity            infinity            infinity
+     Parameter 30~IG(-1.000,0.000)         infinity            infinity            infinity
+     Parameter 31~IG(-1.000,0.000)         infinity            infinity            infinity
+
+
+TECHNICAL 8 OUTPUT
+
+
+   TECHNICAL 8 OUTPUT FOR BAYES ESTIMATION
+
+     CHAIN    BSEED
+     1        0
+     2        285380
+
+                     POTENTIAL       PARAMETER WITH
+     ITERATION    SCALE REDUCTION      HIGHEST PSR
+     100              3.440               26
+     200              3.475               2
+     300              5.814               2
+     400              3.988               2
+     500              4.439               2
+     600              5.509               2
+     700              5.265               2
+     800              7.668               1
+     900              6.316               1
+     1000             4.898               1
+     1100             4.149               1
+     1200             3.637               1
+     1300             3.094               1
+     1400             2.544               1
+     1500             2.331               1
+     1600             1.776               1
+     1700             1.333               30
+     1800             1.305               30
+     1900             1.324               30
+     2000             1.362               30
+     2100             1.400               30
+     2200             1.428               30
+     2300             1.452               30
+     2400             1.435               30
+     2500             1.449               30
+     2600             1.463               1
+     2700             1.429               30
+     2800             1.398               30
+     2900             1.321               30
+     3000             1.302               1
+     3100             1.310               1
+     3200             1.280               1
+     3300             1.287               30
+     3400             1.295               30
+     3500             1.299               30
+     3600             1.301               30
+     3700             1.302               30
+     3800             1.312               30
+     3900             1.320               30
+     4000             1.360               15
+     4100             1.381               15
+     4200             1.388               15
+     4300             1.375               15
+     4400             1.415               2
+     4500             1.450               2
+     4600             1.489               2
+     4700             1.542               2
+     4800             1.586               2
+     4900             1.613               2
+     5000             1.641               2
+     5100             1.675               2
+     5200             1.710               2
+     5300             1.737               2
+     5400             1.764               2
+     5500             1.800               2
+     5600             1.833               2
+     5700             1.866               2
+     5800             1.905               2
+     5900             1.958               2
+     6000             2.030               2
+     6100             2.102               2
+     6200             2.170               2
+     6300             2.237               2
+     6400             2.293               2
+     6500             2.363               2
+     6600             2.426               2
+     6700             2.487               2
+     6800             2.550               2
+     6900             2.650               2
+     7000             2.764               2
+     7100             2.881               2
+     7200             3.003               2
+     7300             3.108               2
+     7400             3.195               2
+     7500             3.318               2
+     7600             3.427               2
+     7700             3.428               2
+     7800             3.370               2
+     7900             3.317               2
+     8000             3.259               2
+     8100             3.220               2
+     8200             3.209               2
+     8300             3.172               2
+     8400             3.133               2
+     8500             3.158               2
+     8600             3.150               2
+     8700             3.130               2
+     8800             3.118               2
+     8900             3.100               2
+     9000             3.097               2
+     9100             3.081               2
+     9200             3.073               2
+     9300             3.085               2
+     9400             3.083               2
+     9500             3.098               2
+     9600             3.093               2
+     9700             3.046               2
+     9800             2.960               2
+     9900             2.857               2
+     10000            2.774               2
+     10100            2.720               2
+     10200            2.680               2
+     10300            2.637               2
+     10400            2.595               2
+     10500            2.571               2
+     10600            2.544               2
+     10700            2.493               2
+     10800            2.440               2
+     10900            2.398               2
+     11000            2.370               2
+     11100            2.344               2
+     11200            2.315               2
+     11300            2.306               2
+     11400            2.298               2
+     11500            2.290               2
+     11600            2.290               2
+     11700            2.276               2
+     11800            2.241               2
+     11900            2.202               2
+     12000            2.174               2
+     12100            2.160               2
+     12200            2.136               2
+     12300            2.106               2
+     12400            2.090               2
+     12500            2.077               2
+     12600            2.052               2
+     12700            2.023               2
+     12800            1.989               2
+     12900            1.937               2
+     13000            1.880               2
+     13100            1.844               2
+     13200            1.807               2
+     13300            1.744               2
+     13400            1.688               2
+     13500            1.638               2
+     13600            1.590               2
+     13700            1.547               2
+     13800            1.522               2
+     13900            1.497               2
+     14000            1.480               2
+     14100            1.469               2
+     14200            1.462               2
+     14300            1.455               2
+     14400            1.449               2
+     14500            1.447               2
+     14600            1.447               2
+     14700            1.446               2
+     14800            1.448               2
+     14900            1.451               2
+     15000            1.457               2
+     15100            1.463               2
+     15200            1.470               2
+     15300            1.477               2
+     15400            1.485               2
+     15500            1.491               2
+     15600            1.497               2
+     15700            1.504               2
+     15800            1.507               2
+     15900            1.508               2
+     16000            1.502               2
+     16100            1.489               2
+     16200            1.472               2
+     16300            1.465               30
+     16400            1.474               30
+     16500            1.482               30
+     16600            1.486               30
+     16700            1.484               30
+     16800            1.483               30
+     16900            1.484               30
+     17000            1.482               30
+     17100            1.473               30
+     17200            1.462               30
+     17300            1.451               30
+     17400            1.429               30
+     17500            1.422               2
+     17600            1.422               2
+     17700            1.422               2
+     17800            1.420               2
+     17900            1.414               2
+     18000            1.403               2
+     18100            1.398               2
+     18200            1.390               2
+     18300            1.382               2
+     18400            1.374               2
+     18500            1.369               2
+     18600            1.367               2
+     18700            1.362               2
+     18800            1.357               2
+     18900            1.352               2
+     19000            1.348               2
+     19100            1.340               2
+     19200            1.329               2
+     19300            1.319               2
+     19400            1.310               2
+     19500            1.302               2
+     19600            1.301               2
+     19700            1.303               2
+     19800            1.305               2
+     19900            1.308               2
+     20000            1.310               2
+     20100            1.313               2
+     20200            1.317               2
+     20300            1.323               2
+     20400            1.330               2
+     20500            1.336               2
+     20600            1.343               2
+     20700            1.344               2
+     20800            1.343               2
+     20900            1.336               2
+     21000            1.328               2
+     21100            1.316               2
+     21200            1.307               2
+     21300            1.299               2
+     21400            1.294               2
+     21500            1.290               2
+     21600            1.289               2
+     21700            1.288               2
+     21800            1.286               2
+     21900            1.284               2
+     22000            1.281               2
+     22100            1.276               2
+     22200            1.270               2
+     22300            1.267               2
+     22400            1.266               2
+     22500            1.263               2
+     22600            1.260               2
+     22700            1.257               2
+     22800            1.250               2
+     22900            1.243               2
+     23000            1.234               2
+     23100            1.226               2
+     23200            1.219               2
+     23300            1.212               2
+     23400            1.206               2
+     23500            1.198               2
+     23600            1.188               2
+     23700            1.178               2
+     23800            1.165               2
+     23900            1.151               2
+     24000            1.139               2
+     24100            1.127               2
+     24200            1.114               2
+     24300            1.102               2
+     24400            1.091               2
+     24500            1.082               2
+     24600            1.075               31
+     24700            1.076               31
+     24800            1.075               31
+     24900            1.073               31
+     25000            1.070               31
+     25100            1.068               31
+     25200            1.066               31
+     25300            1.065               31
+     25400            1.064               31
+     25500            1.063               31
+     25600            1.061               31
+     25700            1.061               31
+     25800            1.059               31
+     25900            1.058               31
+     26000            1.056               31
+     26100            1.055               31
+     26200            1.052               31
+     26300            1.050               31
+     26400            1.049               31
+     26500            1.047               31
+     26600            1.046               31
+     26700            1.045               31
+     26800            1.043               31
+     26900            1.040               31
+     27000            1.038               31
+     27100            1.035               31
+     27200            1.033               31
+     27300            1.031               31
+     27400            1.030               31
+     27500            1.029               31
+     27600            1.029               31
+     27700            1.029               31
+     27800            1.028               31
+     27900            1.028               31
+     28000            1.027               31
+     28100            1.027               31
+     28200            1.026               31
+     28300            1.025               31
+     28400            1.024               31
+     28500            1.023               31
+     28600            1.023               31
+     28700            1.022               31
+     28800            1.020               31
+     28900            1.019               31
+     29000            1.017               31
+     29100            1.017               31
+     29200            1.016               31
+     29300            1.015               31
+     29400            1.015               31
+     29500            1.015               31
+     29600            1.014               31
+     29700            1.014               31
+     29800            1.013               31
+     29900            1.013               31
+     30000            1.012               31
+     30100            1.012               31
+     30200            1.011               31
+     30300            1.010               31
+     30400            1.009               31
+     30500            1.008               2
+     30600            1.009               2
+     30700            1.009               2
+     30800            1.009               2
+     30900            1.009               2
+     31000            1.008               2
+     31100            1.007               2
+     31200            1.007               2
+     31300            1.007               15
+     31400            1.008               15
+     31500            1.009               15
+     31600            1.009               15
+     31700            1.010               15
+     31800            1.011               15
+     31900            1.012               15
+     32000            1.012               15
+     32100            1.011               15
+     32200            1.011               15
+     32300            1.011               15
+     32400            1.010               15
+     32500            1.008               15
+     32600            1.008               19
+     32700            1.009               19
+     32800            1.009               19
+     32900            1.010               19
+     33000            1.010               19
+     33100            1.009               19
+     33200            1.009               19
+     33300            1.009               19
+     33400            1.009               19
+     33500            1.009               19
+     33600            1.008               19
+     33700            1.007               19
+     33800            1.007               19
+     33900            1.007               19
+     34000            1.008               19
+     34100            1.009               19
+     34200            1.009               19
+     34300            1.009               19
+     34400            1.010               19
+     34500            1.011               19
+     34600            1.011               19
+     34700            1.012               19
+     34800            1.011               19
+     34900            1.012               19
+     35000            1.012               19
+     35100            1.011               19
+     35200            1.011               19
+     35300            1.009               19
+     35400            1.008               19
+     35500            1.008               2
+     35600            1.008               2
+     35700            1.009               2
+     35800            1.009               2
+     35900            1.010               2
+     36000            1.011               2
+     36100            1.012               2
+     36200            1.013               2
+     36300            1.014               2
+     36400            1.015               2
+     36500            1.016               2
+     36600            1.017               2
+     36700            1.019               2
+     36800            1.020               2
+     36900            1.022               2
+     37000            1.023               2
+     37100            1.025               2
+     37200            1.026               2
+     37300            1.028               2
+     37400            1.030               2
+     37500            1.031               2
+     37600            1.033               2
+     37700            1.034               2
+     37800            1.035               2
+     37900            1.036               2
+     38000            1.037               2
+     38100            1.038               2
+     38200            1.039               2
+     38300            1.039               2
+     38400            1.039               2
+     38500            1.038               2
+     38600            1.037               2
+     38700            1.036               2
+     38800            1.035               2
+     38900            1.034               2
+     39000            1.033               2
+     39100            1.031               2
+     39200            1.030               2
+     39300            1.028               2
+     39400            1.027               2
+     39500            1.026               2
+     39600            1.024               2
+     39700            1.022               2
+     39800            1.021               2
+     39900            1.020               2
+     40000            1.019               2
+     40100            1.018               2
+     40200            1.017               2
+     40300            1.017               2
+     40400            1.016               2
+     40500            1.015               2
+     40600            1.014               2
+     40700            1.013               2
+     40800            1.012               2
+     40900            1.011               2
+     41000            1.012               15
+     41100            1.013               15
+     41200            1.014               15
+     41300            1.014               15
+     41400            1.015               15
+     41500            1.015               15
+     41600            1.015               15
+     41700            1.016               15
+     41800            1.017               15
+     41900            1.017               15
+     42000            1.017               15
+     42100            1.018               15
+     42200            1.019               15
+     42300            1.020               15
+     42400            1.021               15
+     42500            1.022               15
+     42600            1.023               15
+     42700            1.025               15
+     42800            1.027               15
+     42900            1.028               15
+     43000            1.029               15
+     43100            1.029               15
+     43200            1.029               15
+     43300            1.031               15
+     43400            1.033               15
+     43500            1.035               15
+     43600            1.037               15
+     43700            1.038               15
+     43800            1.040               15
+     43900            1.040               15
+     44000            1.042               15
+     44100            1.043               15
+     44200            1.045               15
+     44300            1.045               15
+     44400            1.046               15
+     44500            1.047               15
+     44600            1.048               15
+     44700            1.049               15
+     44800            1.050               15
+     44900            1.052               15
+     45000            1.053               15
+     45100            1.054               15
+     45200            1.055               15
+     45300            1.055               15
+     45400            1.054               15
+     45500            1.054               15
+     45600            1.054               15
+     45700            1.055               15
+     45800            1.056               15
+     45900            1.056               15
+     46000            1.056               15
+     46100            1.057               15
+     46200            1.055               15
+     46300            1.055               15
+     46400            1.055               15
+     46500            1.055               15
+     46600            1.054               15
+     46700            1.053               15
+     46800            1.053               15
+     46900            1.052               15
+     47000            1.051               15
+     47100            1.051               15
+     47200            1.051               15
+     47300            1.050               15
+     47400            1.050               15
+     47500            1.050               15
+     47600            1.051               15
+     47700            1.053               15
+     47800            1.054               15
+     47900            1.054               15
+     48000            1.053               15
+     48100            1.052               15
+     48200            1.052               15
+     48300            1.050               15
+     48400            1.048               15
+     48500            1.048               15
+     48600            1.048               15
+     48700            1.048               15
+     48800            1.048               15
+     48900            1.048               15
+     49000            1.048               15
+     49100            1.047               15
+     49200            1.047               15
+     49300            1.046               15
+     49400            1.046               15
+     49500            1.047               15
+     49600            1.047               15
+     49700            1.046               15
+     49800            1.047               15
+     49900            1.048               15
+     50000            1.048               15
+
+
+DIAGRAM INFORMATION
+
+  Use View Diagram under the Diagram menu in the Mplus Editor to view the diagram.
+  If running Mplus from the Mplus Diagrammer, the diagram opens automatically.
+
+  Diagram output
+    c:\users\lg05\owncloud - lukas gunschera@cloud.mrc-cbu.cam.ac.uk\dmh_lukas\projects\2024_cognitive_phenotype\code\lc
+
+     Beginning Time:  11:19:10
+        Ending Time:  14:39:32
+       Elapsed Time:  03:20:22
+
+
+
+MUTHEN & MUTHEN
+3463 Stoner Ave.
+Los Angeles, CA  90066
+
+Tel: (310) 391-9971
+Fax: (310) 391-8971
+Web: www.StatModel.com
+Support: Support@StatModel.com
+
+Copyright (c) 1998-2023 Muthen & Muthen
