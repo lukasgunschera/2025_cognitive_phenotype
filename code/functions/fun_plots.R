@@ -22,9 +22,11 @@ plot_theme <- ggplot2::theme(
 
   # Text formatting
   text         = ggplot2::element_text(size = 12, family = "sans", colour = "#2E2E2E"),
-  title        = ggplot2::element_text(size = 12),
-  axis.title   = ggplot2::element_text(size = 12),
-  axis.text    = ggplot2::element_text(size = 12),
+  title        = ggplot2::element_text(size = 12, family = "sans", colour = "#2E2E2E"),
+  axis.title   = ggplot2::element_text(size = 12, family = "sans", colour = "#2E2E2E"),
+  axis.text    = ggplot2::element_text(size = 12, family = "sans", colour = "#2E2E2E"),
+
+
 
   # Margin formatting
   plot.margin  = margin(.1, .1, .1, .1, "cm"),
@@ -52,12 +54,12 @@ plot_theme_legend <- ggplot2::theme(
   axis.ticks.length.y = unit(0.15, "cm"),
 
   # Text formatting
-  text         = ggplot2::element_text(size = 15, family = "sans", colour = "#2E2E2E"),
-  title        = ggplot2::element_text(size = 15),
-  axis.title   = ggplot2::element_text(size = 15),
-  axis.text    = ggplot2::element_text(size = 15),
-  legend.title = ggplot2::element_text(size = 15),
-  legend.text  = ggplot2::element_text(size = 15),
+  text         = ggplot2::element_text(size = 12, family = "sans", colour = "#2E2E2E"),
+  title        = ggplot2::element_text(size = 12, family = "sans", colour = "#2E2E2E"),
+  axis.title   = ggplot2::element_text(size = 12, family = "sans", colour = "#2E2E2E"),
+  axis.text    = ggplot2::element_text(size = 12, family = "sans", colour = "#2E2E2E"),
+  legend.title = ggplot2::element_text(size = 12, family = "sans", colour = "#2E2E2E"),
+  legend.text  = ggplot2::element_text(size = 12, family = "sans", colour = "#2E2E2E"),
 
   # Margin formatting
   plot.margin  = margin(.1, .1, .1, .1, "cm"),
