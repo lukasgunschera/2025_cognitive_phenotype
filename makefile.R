@@ -60,3 +60,12 @@ install.packages("hBayesDM", dependencies = TRUE)
 # (6) code/lcid_postprocessing.R
 # This script combines outputs from the previous modeling, and processing of data and creates a combined datafile that will
 # be used for later analyses and visualisations. The file returns 'tvar_masterdat_wide.csv' and 'tvar_masterdat_long.csv'.
+
+# (7) code/lcid_visualise_results.R
+# This comprehensive script contains most visualisations of descriptive statitics, tests, and model results for the present
+# project. The script returns a series of plots, some default arguments of which are controlled using the fun_plots.R
+# function that contains common theme elements and settings used throughout the plots.
+
+
+
+
