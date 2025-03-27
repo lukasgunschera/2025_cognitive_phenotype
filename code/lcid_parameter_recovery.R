@@ -19,7 +19,7 @@ set.seed(777)
 SIMULATE_DATA <- TRUE  # should data be simulated or a previous simulation loaded
 FIT_CLUSTER <- FALSE   # should the fitting be run on a cluster or locally
 FIT_MODEL <- TRUE      # should the fitting be run or loaded from file
-N_SAMPLE <- 10000       # number of participants to simulate
+N_SAMPLE <- 10000      # number of participants to simulate
 
 # load required packages
 library(loo)
