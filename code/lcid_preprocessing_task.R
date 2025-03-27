@@ -42,19 +42,17 @@ source(here::here("code", "functions", "fun_posterior_predictions.R"))
 ## PREPROCESS FUNCTION ======================================================================================================
 
 dd_preprocess <- function(file_paths) {
-
   output_list <- list() # initiate empty object for output
 
   # loop over file paths and process each individually
   for (file_path in file_paths) {
-
     # load current file_path iteration and process
     dd_file <- read_csv(here("data", "raw", file_path))
 
     # select relevant columns, (data format was distinct in wave 6)
     if (file_path == "ses_w06_delaydiscounting.csv") {
       dd_file %<>%
-        dplyr::select("Tijdstempel", "SU PPN", "Trial record")     # SU PPN = Subject ID in Wave 2,3,4,5
+        dplyr::select("Tijdstempel", "SU PPN", "Trial record") # SU PPN = Subject ID in Wave 2,3,4,5
     } else {
       dd_file %<>%
         dplyr::select("Tijdstempel", "Subject ID", "Trial record") # Subject ID = SU PPN in Wave 6
@@ -66,11 +64,11 @@ dd_preprocess <- function(file_paths) {
     # Separate results column into individual trials
     dd_temp <- dd_file %>%
       separate_rows(results, sep = "\\|", convert = TRUE) %>%
-      dplyr::filter(!is.na(results)) %>%               # remove rows with empty results
-      dplyr::filter(str_length(subjID) == 8) %>%       # remove rows with invalid participant IDs
-      dplyr::filter(!str_detect(subjID, "pilot")) %>%  # remove rows with pilot participants
-      dplyr::filter(!str_detect(subjID, "99901")) %>%  # remove rows with pilot participants
-      dplyr::filter(!str_detect(subjID, "98801")) %>%  # remove rows with pilot participants
+      dplyr::filter(!is.na(results)) %>% # remove rows with empty results
+      dplyr::filter(str_length(subjID) == 8) %>% # remove rows with invalid participant IDs
+      dplyr::filter(!str_detect(subjID, "pilot")) %>% # remove rows with pilot participants
+      dplyr::filter(!str_detect(subjID, "99901")) %>% # remove rows with pilot participants
+      dplyr::filter(!str_detect(subjID, "98801")) %>% # remove rows with pilot participants
       dplyr::mutate(results = trimws(results)) %>%
       dplyr::filter(results != "")
 
@@ -83,8 +81,10 @@ dd_preprocess <- function(file_paths) {
 
     # Break up results information into different columns
     dd_temp %<>%
-      separate(results, into = c("placehold1", "placehold2",
-                                 "delay", "offer", "response", "response_time"), sep = ";") %>%
+      separate(results, into = c(
+        "placehold1", "placehold2",
+        "delay", "offer", "response", "response_time"
+      ), sep = ";") %>%
       dplyr::select(subjID, trial, delay, offer, response, response_time)
 
     # ungroup data
@@ -108,8 +108,10 @@ dd_preprocess <- function(file_paths) {
 
     dd_temp %<>%
       dplyr::rename(delay_later = delay, amount_sooner = offer, choice = response) %>%
-      dplyr::mutate(amount_later = 10, delay_sooner = 0,
-             choice = ifelse(choice == "standard", 1, ifelse(choice == "variable", 0, NA))) %>% #0 = immediate, 1 = delayed
+      dplyr::mutate(
+        amount_later = 10, delay_sooner = 0,
+        choice = ifelse(choice == "standard", 1, ifelse(choice == "variable", 0, NA))
+      ) %>% # 0 = immediate, 1 = delayed
       dplyr::select(subjID, trial, delay_later, amount_later, delay_sooner, amount_sooner, choice) %>%
       dplyr::filter(substr(subjID, nchar(subjID) - 1, nchar(subjID)) %in% c("01", "02"))
 
@@ -133,8 +135,10 @@ dd_preprocess <- function(file_paths) {
 ## PERFORM DATA CLEANING ====================================================================================================
 
 # list csv files to process
-dd_file_paths <- c("ses_w02_delaydiscounting.csv", "ses_w03_delaydiscounting.csv", "ses_w04_delaydiscounting.csv",
-                   "ses_w05_delaydiscounting.csv", "ses_w06_delaydiscounting.csv")
+dd_file_paths <- c(
+  "ses_w02_delaydiscounting.csv", "ses_w03_delaydiscounting.csv", "ses_w04_delaydiscounting.csv",
+  "ses_w05_delaydiscounting.csv", "ses_w06_delaydiscounting.csv"
+)
 
 # process multiple CSV files
 dd_output <- dd_preprocess(dd_file_paths)
@@ -143,13 +147,17 @@ dd_output <- dd_preprocess(dd_file_paths)
 
 # inspect trial distributions for each measurement wave
 den_plot1 <- lapply(dd_output, function(x) ggpubr::ggdensity(x, "trial"))
-ggpubr::ggarrange(plotlist = den_plot1, nrow = 2, ncol = 3, label.x = .5,
-          labels = c("wave2", "wave3", "wave4", "wave5", "wave6"))
+ggpubr::ggarrange(
+  plotlist = den_plot1, nrow = 2, ncol = 3, label.x = .5,
+  labels = c("wave2", "wave3", "wave4", "wave5", "wave6")
+)
 
 # inspect choice distribution for each measurement wave
 den_plot2 <- lapply(dd_output, function(x) ggpubr::ggdensity(x, "choice"))
-ggpubr::ggarrange(plotlist = den_plot2, nrow = 2, ncol = 3, label.x = .25,
-          labels = c("wave2", "wave3", "wave4", "wave5", "wave6"))
+ggpubr::ggarrange(
+  plotlist = den_plot2, nrow = 2, ncol = 3, label.x = .25,
+  labels = c("wave2", "wave3", "wave4", "wave5", "wave6")
+)
 
 # Get minimum number of trials (per participant, per wave)
 max_trials <- lapply(dd_output, function(df) {
@@ -173,7 +181,6 @@ filtered_dd_output <- lapply(dd_output, function(df) {
 
 # remove participants with no behavioural variation
 filtered_dd_output <- lapply(filtered_dd_output, function(df) {
-
   # Identify the subjID that meet the criteria
   invariant_subjID <- df %>%
     dplyr::group_by(subjID) %>%

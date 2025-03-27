@@ -16,10 +16,10 @@ set.seed(777)
 
 # set global parameters determining the model fitting process
 
-SIMULATE_DATA <- TRUE  # should data be simulated or a previous simulation loaded
-FIT_CLUSTER <- FALSE   # should the fitting be run on a cluster or locally
-FIT_MODEL <- TRUE      # should the fitting be run or loaded from file
-N_SAMPLE <- 10000      # number of participants to simulate
+SIMULATE_DATA <- TRUE # should data be simulated or a previous simulation loaded
+FIT_CLUSTER <- FALSE # should the fitting be run on a cluster or locally
+FIT_MODEL <- TRUE # should the fitting be run or loaded from file
+N_SAMPLE <- 10000 # number of participants to simulate
 
 # load required packages
 library(loo)
@@ -54,7 +54,6 @@ source(here("code", "functions", "fun_model_preprocessing.R"))
 
 ### Simulate/Load Data ------------------------------------------------------------------------------------------------------
 if (SIMULATE_DATA) {
-
   print("SIMULATING NEW FILE")
 
   # Delay discounting simulation ----------------------------------------------------------------------------------------------
@@ -66,7 +65,6 @@ if (SIMULATE_DATA) {
 
   saveRDS(dd_sim, file = here::here("data", "processed", "dd_sim_data.RDS"))
 } else {
-
   print("LOADING SIMULATED DATA FROM FILE")
   dd_sim <- readRDS(file = here::here("data", "processed", "dd_sim_data.RDS"))
 }
@@ -82,7 +80,6 @@ dd_sim_par <- dd_sim[[2]] %>%
 
 # fit on cluster
 if (FIT_MODEL && FIT_CLUSTER) {
-
   # set cmd_stan installation path to location on cluster (change as required)
   set_cmdstan_path("/group/orben/software/linux/cmdstan/cmdstan-2.33.1")
 
@@ -91,17 +88,15 @@ if (FIT_MODEL && FIT_CLUSTER) {
 
   print("MODEL WILL RUN ON CLUSTER")
 
-# fit on local machine
+  # fit on local machine
 } else if (FIT_MODEL && !FIT_CLUSTER) {
-
   print("MODEL WILL RUN ON LOCAL MACHINE, CODE EXECUTION MAY TAKE LONGER")
 
   # load Model (windows/Mac)
   dd_hyperbolic_stan <- cmdstanr::cmdstan_model(here::here("code", "stan", "dd_hyperbolic.stan"))
 
-# load results from file
+  # load results from file
 } else {
-
   # output message
   print("DID NOT RUN MODELS, YOU CAN LOAD RESULTS FROM FILE")
 
@@ -129,7 +124,6 @@ dd_model_dat <- process_task_data(dd_sim_dat)
 ### Run Model -----------------------------=---------------------------------------------------------------------------------
 
 if (FIT_MODEL) {
-
   dd_hyperbo_fit <- dd_hyperbolic_stan$sample(
     data = dd_model_dat,
     refresh = 0, chains = 4, parallel_chains = 4,
@@ -141,12 +135,12 @@ if (FIT_MODEL) {
   ### Model results ---------------------------------------------------------------------------------------------------------
 
   dd_hyperbo_check <- convergence_check(dd_hyperbo_fit,
-                                        params = c("k", "beta"),
-                                        Rhat = TRUE, ess = TRUE,
-                                        trace_plot = TRUE, rank_hist = FALSE
+    params = c("k", "beta"),
+    Rhat = TRUE, ess = TRUE,
+    trace_plot = TRUE, rank_hist = FALSE
   )
 
-  dd_hyperbo_check$trace_plot            # trace plot for convergence
+  dd_hyperbo_check$trace_plot # trace plot for convergence
   dd_hyperbo_loo <- dd_hyperbo_fit$loo() # LOO for model comparison
 
   dd_hyperbo_parameters <- get_params(
@@ -177,8 +171,10 @@ if (FIT_MODEL) {
 
   ### Save Model Results ----------------------------------------------------------------------------------------------------
   saveRDS(dd_par_pr, file = here::here("output", "parameter_recovery", "dd_precover.RDS"))
-  saveRDS(list(dd_hyperbo_check$Rhat, dd_hyperbo_check$ess, dd_hyperbo_check$trace_plot),
-          here::here("output", "parameter_recovery", "dd_hyperbo_check_precover.RDS"))
+  saveRDS(
+    list(dd_hyperbo_check$Rhat, dd_hyperbo_check$ess, dd_hyperbo_check$trace_plot),
+    here::here("output", "parameter_recovery", "dd_hyperbo_check_precover.RDS")
+  )
   saveRDS(dd_hyperbo_loo, here::here("output", "parameter_recovery", "dd_hyperbo_loo_precover.RDS"))
   saveRDS(dd_hyperbo_parameters, here::here("output", "parameter_recovery", "dd_hyperbo_parameters_precover.RDS"))
 
@@ -201,10 +197,10 @@ if (FIT_MODEL) {
     scale_x_continuous(breaks = seq(0, nrow(dd_recovery_fit$post_warmup_draws), length.out = 3))
 
   ggsave(ggt_recovery,
-         dpi = 1200, device = "png",
-         path = here::here("output", "parameter_recovery", "images"),
-         filename = "ggt_precover.png"
-         )
+    dpi = 1200, device = "png",
+    path = here::here("output", "parameter_recovery", "images"),
+    filename = "ggt_precover.png"
+  )
 
   #### Density plot ---------------------------------------------------------------------------------------------------------
   ggd_recovery <- bayesplot::mcmc_dens_overlay(dd_recovery_fit$post_warmup_draws) +
@@ -217,10 +213,10 @@ if (FIT_MODEL) {
     labs(y = "Density")
 
   ggsave(ggd_recovery,
-         dpi = 1200, device = "png",
-         path = here::here("output", "parameter_recovery", "images"),
-         filename = "ggd_precover.png"
-         )
+    dpi = 1200, device = "png",
+    path = here::here("output", "parameter_recovery", "images"),
+    filename = "ggd_precover.png"
+  )
 
   #### Heatmap plot -----------------------------------------------------------------------------------------------------------
   ggh_recovery <- bayesplot::mcmc_hex(dd_recovery_fit$post_warmup_draws, bins = 50) +
@@ -232,11 +228,10 @@ if (FIT_MODEL) {
     labs(x = "Delay discounting (k)", y = "Inverse temperature (beta)")
 
   ggsave(ggh_recovery,
-       dpi = 1200, device = "png",
-       path = here::here("output", "parameter_recovery", "images"),
-       filename = "ggh_precover.png"
-       )
-
+    dpi = 1200, device = "png",
+    path = here::here("output", "parameter_recovery", "images"),
+    filename = "ggh_precover.png"
+  )
 } else {
   print("MODEL WAS NOT FIT, NEED TO LOAD FITTING RESULTS OR BELOW CODE WON'T EXECUTE")
 
@@ -282,15 +277,16 @@ rownames(cormat) <- c("β", "β(r)", "k", "k(r)")
 
 # create correlation matrix
 pr_corplot <- ggcorrplot::ggcorrplot(
-  cormat, lab = TRUE,
+  cormat,
+  lab = TRUE,
   hc.order = TRUE, outline.color = "white", tl.cex = 30,
   lab_size = 9, show.legend = FALSE, colors = c("#feca8d", "#fcfdbf", "#6ece58")
-  )
+)
 
 ggplot2::ggsave(prb_corplot,
-       path = here::here("output", "parameter_recovery", "images"),
-       filename = "parameter_recovery.png", dpi = 1200, device = "png"
-       )
+  path = here::here("output", "parameter_recovery", "images"),
+  filename = "parameter_recovery.png", dpi = 1200, device = "png"
+)
 
 # examine spearman rank order correlations between simulated and recovered parameters, both log and not log transformed
 cor(dd_par_pr$value[dd_par_pr$parameter == "k"], dd_par_pr$value_rec[dd_par_pr$parameter == "k"], method = "spearman")
@@ -301,7 +297,7 @@ cor(dd_par_pr$value[dd_par_pr$parameter == "beta"], dd_par_pr$value_rec[dd_par_p
 # examine spearman rank order correlations for log(k) parameter
 stats::cor(log(dd_par_pr$value[dd_par_pr$parameter == "k"]), -log(dd_par_pr$value_rec[dd_par_pr$parameter == "k"]),
   method = "spearman"
-  )
+)
 
 #### Visualse correlation k and log(k) --------------------------------------------------------------------------------------
 
@@ -320,9 +316,10 @@ prec <- dd_par_pr %>%
   scale_colour_viridis(alpha = 1)
 
 # save plot
-ggsave(prec, path = here::here("output", "parameter_recovery", "images"),
-       filename = "parameter_recovery_k.png", dpi = 1200, device = "png"
-       )
+ggsave(prec,
+  path = here::here("output", "parameter_recovery", "images"),
+  filename = "parameter_recovery_k.png", dpi = 1200, device = "png"
+)
 
 prec_logk <- dd_par_pr %>%
   ggplot(., aes(x = -log(value), y = -log(value_rec), colour = rec_precision)) +
@@ -339,6 +336,7 @@ prec_logk <- dd_par_pr %>%
   scale_colour_viridis(alpha = 1)
 
 # save plot
-ggsave(prec_logk, path = here::here("output", "parameter_recovery", "images"),
-       filename = "parameter_recovery_logk.png", dpi = 1200, device = "png"
-       )
+ggsave(prec_logk,
+  path = here::here("output", "parameter_recovery", "images"),
+  filename = "parameter_recovery_logk.png", dpi = 1200, device = "png"
+)

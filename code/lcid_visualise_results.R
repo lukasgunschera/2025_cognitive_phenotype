@@ -336,7 +336,8 @@ logk_dens <- ddtvar_long %>%
   annotate(x = 0, xend = 12, y = -Inf, yend = -Inf, colour = "#2E2E2E", lwd = .75, geom = "segment")
 
 ggplot2::ggsave(
-  logk_dens, path = here("output", "images", "modeling"),
+  logk_dens,
+  path = here("output", "images", "modeling"),
   filename = "logk_density.png", dpi = 1200, device = "png"
 )
 
@@ -1933,6 +1934,7 @@ dd_den_vc_b <- ddtvar_long %>%
 
 dd_sm_beta_dens <- ggpubr::ggarrange(dd_den_me_b, dd_den_vi_b, dd_den_po_b, dd_den_vc_b, ncol = 2, nrow = 2)
 
-ggplot2::ggsave(dd_sm_beta_dens, path = here::here("output", "images"),
-                filename = "dd_sm_beta_dens.png", dpi = 1200, device = "png")
-
+ggplot2::ggsave(dd_sm_beta_dens,
+  path = here::here("output", "images"),
+  filename = "dd_sm_beta_dens.png", dpi = 1200, device = "png"
+)

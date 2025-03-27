@@ -34,14 +34,14 @@ library(viridisLite)
 library(PupillometryR)
 
 # set global parameters determining the model fitting process
-FIT_MODEL   <- TRUE     # TRUE will fit model to data, FALSE will skip model fitting
-FIT_ALLDATA <- TRUE     # TRUE will fit model to all participants, FALSE will fit model to a subset of participants
-FIT_CLUSTER <- FALSE    # TRUE will fit model on high performance computing cluster (hard-coded and may require adjustments)
+FIT_MODEL <- TRUE # TRUE will fit model to data, FALSE will skip model fitting
+FIT_ALLDATA <- TRUE # TRUE will fit model to all participants, FALSE will fit model to a subset of participants
+FIT_CLUSTER <- FALSE # TRUE will fit model on high performance computing cluster (hard-coded and may require adjustments)
 
-ITER_WARMUP <- 2000     # Set warm up iterations for later models
-ITER_SAMPLING <- 10000  # Set sampling iterations for later models
+ITER_WARMUP <- 2000 # Set warm up iterations for later models
+ITER_SAMPLING <- 10000 # Set sampling iterations for later models
 
-NUM_CORES <- parallel::detectCores() - 1  # Set cores to use for computation
+NUM_CORES <- parallel::detectCores() - 1 # Set cores to use for computation
 
 # set directory
 here::i_am("renv.lock") # set directory
@@ -63,7 +63,11 @@ source(here::here("code", "functions", "fun_load_model_results.R"))
 
 ### Behavioural task data ---------------------------------------------------------------------------------------------------
 dd_data <- readRDS(here("data", "processed", "dd_task.Rds"))
-dd_w02 <- dd_data[[1]]; dd_w03 <- dd_data[[2]]; dd_w04 <- dd_data[[3]]; dd_w05 <- dd_data[[4]]; dd_w06 <- dd_data[[5]]
+dd_w02 <- dd_data[[1]]
+dd_w03 <- dd_data[[2]]
+dd_w04 <- dd_data[[3]]
+dd_w05 <- dd_data[[4]]
+dd_w06 <- dd_data[[5]]
 
 ### Questionnaire & Demographic Data ----------------------------------------------------------------------------------------
 dat_master <- read.csv(file = here::here("data", "processed", "masterfile.csv"), header = TRUE)
@@ -109,12 +113,12 @@ ddtvar <- dd_hyperbo_params_02 %>%
   dplyr::left_join(., dd_hyperbo_params_05, by = "subjID") %>%
   dplyr::left_join(., dd_hyperbo_params_06, by = "subjID") %>%
   dplyr::left_join(., dat_master, by = "subjID") %>%
-  #drop columns that are all NA
-  dplyr::select(where(~!all(is.na(.))))
+  # drop columns that are all NA
+  dplyr::select(where(~ !all(is.na(.))))
 
 # remove trailing "_c" from age columns
 ddtvar %<>%
-  dplyr::rename_with(~str_replace_all(., "_c", ""), contains("age"))
+  dplyr::rename_with(~ str_replace_all(., "_c", ""), contains("age"))
 
 # add log-transformed delay discounting parameter k for each wave
 ddtvar %<>%
@@ -156,15 +160,15 @@ write.csv(ddtvar_long, file = here::here("data", "processed", "tvar_masterdat_lo
 ## ERROR CHECKS =============================================================================================================
 
 #### Check age ranges -------------------------------------------------------------------------------------------------------
-summary(validate::confront(ddtvar,
-                           validate::validator(
-                             r1 = w01_age >= 6.75,
-                             r2 = w02_age >= 7.75,
-                             r3 = w03_age >= 8.75,
-                             r4 = w04_age >= 9.75,
-                             r5 = w05_age >= 10.75,
-                             r6 = w06_age >= 11.75,
-                             r7 = w07_age >= 12.75
-                             )
-                           )
-        )
+summary(validate::confront(
+  ddtvar,
+  validate::validator(
+    r1 = w01_age >= 6.75,
+    r2 = w02_age >= 7.75,
+    r3 = w03_age >= 8.75,
+    r4 = w04_age >= 9.75,
+    r5 = w05_age >= 10.75,
+    r6 = w06_age >= 11.75,
+    r7 = w07_age >= 12.75
+  )
+))

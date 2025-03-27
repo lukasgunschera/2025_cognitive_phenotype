@@ -16,10 +16,10 @@ set.seed(777)
 
 # set global parameters determining the model fitting process
 
-SIMULATE_DATA <- FALSE  # should data be simulated or a previous simulation loaded
-FIT_CLUSTER <- FALSE   # should the fitting be run on a cluster or locally
-FIT_MODEL <- FALSE      # should the fitting be run or loaded from file
-N_SAMPLE <- 10000       # number of participants to simulate
+SIMULATE_DATA <- FALSE # should data be simulated or a previous simulation loaded
+FIT_CLUSTER <- FALSE # should the fitting be run on a cluster or locally
+FIT_MODEL <- FALSE # should the fitting be run or loaded from file
+N_SAMPLE <- 10000 # number of participants to simulate
 
 # load required packages
 library(loo)
@@ -77,8 +77,8 @@ ppcplot2 <- ppc02 %>%
   plot_theme +
   aspect_ratio_square +
   scale_colour_viridis_d(direction = 1) +
-  scale_x_continuous(breaks = seq(0,1,.25), expand = c(0.05, 0.025)) +
-  scale_y_continuous(breaks = seq(0,1,.25), expand = c(0.05, 0.05)) +
+  scale_x_continuous(breaks = seq(0, 1, .25), expand = c(0.05, 0.025)) +
+  scale_y_continuous(breaks = seq(0, 1, .25), expand = c(0.05, 0.05)) +
   labs(x = "Observed", y = "Predicted") +
   annotate(x = -Inf, xend = -Inf, y = 0, yend = 1, colour = "#2E2E2E", lwd = 0.75, geom = "segment") +
   annotate(x = 0, xend = 1, y = -Inf, yend = -Inf, colour = "#2E2E2E", lwd = 0.75, geom = "segment")
@@ -91,8 +91,8 @@ ppcplot3 <- ppc03 %>%
   plot_theme +
   aspect_ratio_square +
   scale_colour_viridis_d(direction = 1) +
-  scale_x_continuous(breaks = seq(0,1,.25), expand = c(0.05, 0.025)) +
-  scale_y_continuous(breaks = seq(0,1,.25), expand = c(0.05, 0.05)) +
+  scale_x_continuous(breaks = seq(0, 1, .25), expand = c(0.05, 0.025)) +
+  scale_y_continuous(breaks = seq(0, 1, .25), expand = c(0.05, 0.05)) +
   labs(x = "Observed", y = "Predicted") +
   annotate(x = -Inf, xend = -Inf, y = 0, yend = 1, colour = "#2E2E2E", lwd = 0.75, geom = "segment") +
   annotate(x = 0, xend = 1, y = -Inf, yend = -Inf, colour = "#2E2E2E", lwd = 0.75, geom = "segment")
@@ -105,8 +105,8 @@ ppcplot4 <- ppc04 %>%
   plot_theme +
   aspect_ratio_square +
   scale_colour_viridis_d(direction = 1) +
-  scale_x_continuous(breaks = seq(0,1,.25), expand = c(0.05, 0.025)) +
-  scale_y_continuous(breaks = seq(0,1,.25), expand = c(0.05, 0.05)) +
+  scale_x_continuous(breaks = seq(0, 1, .25), expand = c(0.05, 0.025)) +
+  scale_y_continuous(breaks = seq(0, 1, .25), expand = c(0.05, 0.05)) +
   labs(x = "Observed", y = "Predicted") +
   annotate(x = -Inf, xend = -Inf, y = 0, yend = 1, colour = "#2E2E2E", lwd = 0.75, geom = "segment") +
   annotate(x = 0, xend = 1, y = -Inf, yend = -Inf, colour = "#2E2E2E", lwd = 0.75, geom = "segment")
@@ -119,8 +119,8 @@ ppcplot5 <- ppc05 %>%
   plot_theme +
   aspect_ratio_square +
   scale_colour_viridis_d(direction = 1) +
-  scale_x_continuous(breaks = seq(0,1,.25), expand = c(0.05, 0.025)) +
-  scale_y_continuous(breaks = seq(0,1,.25), expand = c(0.05, 0.05)) +
+  scale_x_continuous(breaks = seq(0, 1, .25), expand = c(0.05, 0.025)) +
+  scale_y_continuous(breaks = seq(0, 1, .25), expand = c(0.05, 0.05)) +
   labs(x = "Observed", y = "Predicted") +
   annotate(x = -Inf, xend = -Inf, y = 0, yend = 1, colour = "#2E2E2E", lwd = 0.75, geom = "segment") +
   annotate(x = 0, xend = 1, y = -Inf, yend = -Inf, colour = "#2E2E2E", lwd = 0.75, geom = "segment")
@@ -133,8 +133,8 @@ ppcplot6 <- ppc06 %>%
   plot_theme +
   aspect_ratio_square +
   scale_colour_viridis_d(direction = 1) +
-  scale_x_continuous(breaks = seq(0,1,.25), expand = c(0.05, 0.025)) +
-  scale_y_continuous(breaks = seq(0,1,.25), expand = c(0.05, 0.05)) +
+  scale_x_continuous(breaks = seq(0, 1, .25), expand = c(0.05, 0.025)) +
+  scale_y_continuous(breaks = seq(0, 1, .25), expand = c(0.05, 0.05)) +
   labs(x = "Observed", y = "Predicted") +
   annotate(x = -Inf, xend = -Inf, y = 0, yend = 1, colour = "#2E2E2E", lwd = 0.75, geom = "segment") +
   annotate(x = 0, xend = 1, y = -Inf, yend = -Inf, colour = "#2E2E2E", lwd = 0.75, geom = "segment")
@@ -175,5 +175,6 @@ combined_plot <- ppcplot2 + ppcplot3 + ppcplot4 + ppcplot5 + ppcplot6 + plot_spa
   plot_layout(design = layout, guides = "collect")
 
 ggsave(combined_plot,
-       path = here::here("output", "images", "modelfit"),
-       filename = "ppc_corrplots.png", dpi = 1200, device = "png")
+  path = here::here("output", "images", "modelfit"),
+  filename = "ppc_corrplots.png", dpi = 1200, device = "png"
+)
