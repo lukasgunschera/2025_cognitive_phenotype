@@ -70,8 +70,8 @@ source(here::here("code", "functions", "fun_posterior_predictions.R"))
 
 dd_data <- readRDS(here::here("data", "processed", "dd_task.Rds")) # task data loading
 
-# @k      = discounting rate
-# @beta   = inverse temperature
+# @k = discounting rate
+# @beta = inverse temperature
 # FIT_ALLDATA == FALSE == subset three subjects from dataframe to illustrate modeling procedure
 # FIT_ALLDATA == TRUE  == use entire dataset and continue with full modeling procedure
 
