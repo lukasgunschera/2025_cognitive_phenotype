@@ -22,7 +22,6 @@
 install.packages("renv")
 renv::init() # (1) restore the project from the lockfile
 
-
 install.packages("extrafont")
 library(extrafont)
 extrafont::font_import()
@@ -40,6 +39,7 @@ install.packages("hBayesDM", dependencies = TRUE)
 
 
 ## CODE STRUCTURE ===========================================================================================================
+# run the below scripts in the order they are listed to reproduce the results of the project.
 
 # (1) code/lcid_preprocessing.R
 # This script contains all preprocessing steps applied to the raw questionnaire and demographic data.
@@ -66,6 +66,15 @@ install.packages("hBayesDM", dependencies = TRUE)
 # project. The script returns a series of plots, some default arguments of which are controlled using the fun_plots.R
 # function that contains common theme elements and settings used throughout the plots.
 
+# (8) code/mplus/preprocessing.R
+# This script contains all preprocessing steps applied to the raw questionnaire and demographic data for the Mplus analyses.
+# Preprocessing the MPLUS data involves getting the data into the format required by MPLUS, removing missing data, and
+# determining variables to serve as auxiliary variables for the Random-intercept cross-lagged panel models.
 
+# (9) code/mplus/baseline
+# This folder contains the MPLUS scripts and outputs for the baseline models of all mental health indicators.
 
+# (10) code/mplus/moderation_logk
+# This folder contains the MPLUS scripts and outputs for all logk moderation models of all mental health indicators.
 
+# ===========================================================================================================================
