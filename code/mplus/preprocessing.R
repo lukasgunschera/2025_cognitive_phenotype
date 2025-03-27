@@ -1,11 +1,11 @@
-## ============================================================================================================================ ##
+## ======================================================================================================================= ##
 ## Script:    MPLUS Preparation
-## ============================================================================================================================ ##
+## ======================================================================================================================= ##
 ## Authors:   Lukas J. Gunschera
 ## Date:      Wed May  8 08:06:50 2024
-## ============================================================================================================================ ##
+## ======================================================================================================================= ##
 ##
-## ============================================================================================================================ ##
+## ======================================================================================================================= ##
 
 rm(list = ls()); set.seed(777)
 
@@ -24,146 +24,7 @@ dat_tvar   <- readr::read_csv(here("data", "lcid", "dd_delaydiscount", "processe
 aux_variables <- readRDS(here::here("data", "lcid", "dd_delaydiscount", "processed", "auxiliary_variables.rds"))
 aux_variables
 
-# TIME-INVARIANT DATA -------------------------------------------------------------------------------------------------------
-dat_tinvar %<>%
-  dplyr::rename(
-    # Delay Discounting Parameter Estimates
-    logk      = logk,
-    logk_low  = logk_hdi_lower,
-    logk_high = logk_hdi_upper,
-    k         = estimate_k,
-    b         = estimate_beta,
-    k_low     = hdi_lower_k,
-    k_hig     = hdi_upper_k,
-    b_low     = hdi_lower_beta,
-    b_hig     = hdi_upper_beta,
-
-    # Social Media Total Scores
-    smt5  = w05_sm_total,
-    smt6  = w06_sm_total,
-    smt7  = w07_sm_total,
-
-    # Social Media 'Post and Scrolling'
-    smp5  = w05_sm_postandscroll,
-    smp6  = w06_sm_postandscroll,
-    smp7  = w07_sm_postandscroll,
-
-    # Social Media 'Messaging'
-    smm5  = w05_sm_messaging,
-    smm6  = w06_sm_messaging,
-    smm7  = w07_sm_messaging,
-
-    # Social Media 'Video watching'
-    smv5  = w05_sm_video,
-    smv6  = w06_sm_video,
-    smv7  = w07_sm_video,
-
-    # Early Adolescence Temperament Quesionnaire (EATQ-EC)
-    eat5  = w05_eatq_ec_total,
-    eat6  = w06_eatq_ec_total,
-    eat7  = w07_eatq_ec_total,
-
-    # Behavioural Inhibition and Activation Scale (BIS/BAS)
-    bis5  = w05_bisbas_bis,
-    bis6  = w06_bisbas_bis,
-    bis7  = w07_bisbas_bis,
-
-    bas5  = w05_bisbas_bas,
-    bas6  = w06_bisbas_bas,
-    bas7  = w07_bisbas_bas,
-
-    bbt5  = w05_bisbas_total,
-    bbt6  = w06_bisbas_total,
-    bbt7  = w07_bisbas_total,
-
-    # Highly Sensitive Child Scale (HSCS)
-    hsc5  = w05_hscs_total,
-    hsc6  = w06_hscs_total,
-    hsc7  = w07_hscs_total,
-
-    # Strenghts and Difficulties Questionnaire (SDQ)
-    sdq5  = w05_sdq_total,
-    sdq6  = w06_sdq_total,
-    sdq7  = w07_sdq_total,
-
-    # Strengths and Difficulties Questionnaire Externalising & Internalising
-    sdqi5 = w05_sdq_int,
-    sdqi6 = w06_sdq_int,
-    sdqi7 = w07_sdq_int,
-    sdqe5 = w05_sdq_ext,
-    sdqe6 = w06_sdq_ext,
-    sdqe7 = w07_sdq_ext,
-
-    # Demographics
-    sex   = w05_sex,
-    age5  = w05_age,
-    age6  = w06_age,
-    age7  = w07_age,
-    eth   = ethnicity_c,
-
-    # Auxiliary Variables
-    csm5 = w05_cius_total,
-    csm6 = w06_cius_total,
-
-    sex = w05_sex,
-    ses = ses,
-    edu1 = w01_education_op,
-    bsi6 = w06_bsi_total,
-    bsi7 = w07_bsi_total,
-    bsid6 = w06_bsi_depression,
-    bsid7 = w07_bsi_depression,
-    bsia6 = w06_bsi_anxiety,
-    bsia7 = w07_bsi_anxiety,
-
-    pds5 = w05_pds_total,
-    pds6 = w06_pds_total,
-    pds7 = w07_pds_total
-
-  ) %>%
-
-  dplyr::mutate(
-
-    # Pubertal Development Scale (PDS)
-    pdt5  = w05_pds_1 + w05_pds_2 + w05_pds_3,
-    pdt6  = w06_pds_1 + w06_pds_2 + w06_pds_3,
-    pdt7  = w07_pds_1 + w07_pds_2 + w07_pds_3,
-    pdsi2 = w07_pds_2,
-  )
-
-dat_tinvar %<>%
-  dplyr::select(
-    subjID, sex, logk, k, b, logk_low, logk_high, k_low, k_hig, b_low, b_hig,
-
-    smt5, smt6, smt7,
-    smp5, smp6, smp7,
-    smm5, smm6, smm7,
-    smv5, smv6, smv7,
-    eat5, eat6, eat7,
-    bis5, bis6, bis7,
-    bas5, bas6, bas7,
-    bbt5, bbt6, bbt7,
-    hsc5, hsc6, hsc7,
-    sdq5, sdq6, sdq7,
-    sdqi5, sdqi6, sdqi7,
-    sdqe5, sdqe6, sdqe7,
-    pdt5, pdt6, pdt7,
-    age5, age6, age7,
-
-    # Auxiliary variables
-    csm5, csm6, sex, ses, edu1, bsi6, bsi7, bsid6, bsid7, bsia6, bsia7, pdsi2, pds5, pds6, pds7
-  )
-
-# Get ids for subjects who are missing data across the board but sex and subjID
-subjnas <- dat_tinvar %>%
-  dplyr::filter(rowSums(is.na(.[, -(1:2)])) == ncol(.) - 2) %>%
-  dplyr::select(subjID)
-
-# Filter dataframe based on above index
-dat_tinvar %<>%
-  dplyr::filter(!(subjID %in% subjnas$subjID))
-
-
-# TIME-VARIANT DATA -------------------------------------------------------------------------------------------------------
+# TIME-VARIANT DATA ---------------------------------------------------------------------------------------------------------
 dat_tvar %<>%
   dplyr::rename(
 
@@ -372,7 +233,7 @@ mplus_analysis_filter_na <- function(df, varnames, exclude = "sex") {
 aux_variables <- c('csm5', 'csm6', 'sex', 'ses', 'edu1',
                    'bsi6', 'bsi7', 'bsid6', 'bsid7', 'bsia6', 'bsia7', 'pdsi2', 'pds5', 'pds6', 'pds7')
 
-## Create data subsets for baseline models  ----------------------------------------------------------------------------------- ##
+## Create data subsets for baseline models  ---------------------------------------------------------------------------------
 dat_baseline_eatq <-
   mplus_analysis_filter_na(df = dat_tinvar, varnames = c("subjID", "sex", "smp5", "smp6", "smp7", "eat5", "eat6", "eat7"))
 dat_baseline_bisbas <-
@@ -390,27 +251,7 @@ dat_baseline_sdqi <-
 dat_baseline_sdqe <-
   mplus_analysis_filter_na(df = dat_tinvar, varnames = c("subjID", "sex", "smp5", "smp6", "smp7", "sdqe5", "sdqe6", "sdqe7"))
 
-## Create data subsets for time-invariant moderation models  ------------------------------------------------------------------ ##
-dat_mod_eatq <-
-  mplus_analysis_filter_na(df = dat_tinvar, exclude = "logk",
-                           varnames = c("subjID", "logk", "sex", "smp5", "smp6", "smp7", "eat5", "eat6", "eat7"))
-dat_mod_bisbas <-
-  mplus_analysis_filter_na(df = dat_tinvar, exclude = "logk",
-                           varnames = c("subjID", "logk", "sex", "smp5", "smp6", "smp7", "bbt5", "bbt6", "bbt7"))
-dat_mod_hscs <-
-  mplus_analysis_filter_na(df = dat_tinvar, exclude = "logk",
-                           varnames = c("subjID", "logk", "sex", "smp5", "smp6", "smp7", "hsc5", "hsc6", "hsc7"))
-dat_mod_sdq <-
-  mplus_analysis_filter_na(df = dat_tinvar, exclude = "logk",
-                           varnames = c("subjID", "logk", "sex", "smp5", "smp6", "smp7", "sdq5", "sdq6", "sdq7"))
-dat_mod_sdqi <-
-  mplus_analysis_filter_na(df = dat_tinvar, exclude = "logk",
-                           varnames = c("subjID", "logk", "sex", "smp5", "smp6", "smp7", "sdqi5", "sdqi6", "sdqi7"))
-dat_mod_sdqe <-
-  mplus_analysis_filter_na(df = dat_tinvar, exclude = "logk",
-                           varnames = c("subjID", "logk", "sex", "smp5", "smp6", "smp7", "sdqe5", "sdqe6", "sdqe7"))
-
-## Create data subsets for time-variant moderation models  ------------------------------------------------------------------ ##
+## Create data subsets for time-variant moderation models  ------------------------------------------------------------------
 dat_logk_eatq <-
   mplus_analysis_filter_na(df = dat_tvar, varnames = c("subjID", "logk5", "logk6", "sex", "smp5", "smp6", "smp7", "eat5", "eat6", "eat7"), exclude = c("logk5","logk6"))
 dat_logk_bisbas <-
@@ -428,9 +269,9 @@ dat_logk_sdqi <-
 dat_logk_sdqe <-
   mplus_analysis_filter_na(df = dat_tvar, varnames = c("subjID", "logk5", "logk6", "sex", "smp5", "smp6", "smp7", "sdqe5", "sdqe6", "sdqe7"), exclude = c("logk5","logk6"))
 
-## Inverse Temperature BETA =================================================================================================== ##
+## Inverse Temperature BETA =================================================================================================
 
-## Create data subsets for time-variant moderation models  -------------------------------------------------------------------- ##
+## Create data subsets for time-variant moderation models  ------------------------------------------------------------------
 dat_beta_eatq <-
   mplus_analysis_filter_na(df = dat_tvar, varnames = c("subjID", "beta5", "beta6", "sex", "smp5", "smp6", "smp7", "eat5", "eat6", "eat7"), exclude = c("beta5","beta6"))
 dat_beta_bisbas <-
@@ -448,7 +289,7 @@ dat_beta_sdqi <-
 dat_beta_sdqe <-
   mplus_analysis_filter_na(df = dat_tvar, varnames = c("subjID", "beta5", "beta6", "sex", "smp5", "smp6", "smp7", "sdqe5", "sdqe6", "sdqe7"), exclude = c("beta5","beta6"))
 
-# DETERMINE INCLUDED VARIABLES ---------------------------------------------------------------------------------------------
+# DETERMINE INCLUDED VARIABLES ----------------------------------------------------------------------------------------------
 
 # Column names that are included in all MPLUS datasets
 common_cols <- c("smt5","smt6","smt7","smp5","smp6","smp7","smm5","smm6","smm7","smv5","smv6","smv7",
@@ -511,16 +352,11 @@ tvar_datasets_beta <- list(
   list(df = dat_beta_sdqe, filename = "lcid_beta_sdqe.dat")
 )
 
- # PROCESS MPLUS DATA --------------------------------------------------------------------------------------------------------
+ # PROCESS MPLUS DATA -------------------------------------------------------------------------------------------------------
 
 # Process baseline datasets
 lapply(baseline_datasets, function(dataset) {
   prepare_mplus_data(dataset$df, dataset$filename, common_cols, foldername = "dd_delaydiscount")
-})
-
-# Process tinvar moderation datasets
-lapply(tinvar_datasets, function(dataset) {
-  prepare_mplus_data(dataset$df, dataset$filename, c(tinvar_col, common_cols), foldername = "dd_delaydiscount")
 })
 
 # Process tvar moderation (logk) datasets
