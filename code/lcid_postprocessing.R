@@ -172,4 +172,3 @@ summary(validate::confront(
     r7 = w07_age >= 12.75
   )
 ))
-

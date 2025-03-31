@@ -123,6 +123,130 @@ dd_hyperbo_check_06 <- readRDS(here::here("output", "modelfit", "dd_hyperbo_chec
 dd_hyperbo_loo_06 <- readRDS(here::here("output", "modelfit", "dd_hyperbo_loo_06.RDS"))
 dd_hyperbo_params_06 <- readRDS(here::here("output", "modelfit", "dd_hyperbo_parameters_06.RDS"))
 
+## SAMPLE CHARACTERISTICS ===================================================================================================
+
+# get number of male and female participants per wave
+dat_demographics %>%
+  group_by(sex_c) %>%
+  summarise(
+    w01 = sum(w01_participation, na.rm = TRUE),
+    w02 = sum(w02_participation, na.rm = TRUE),
+    w03 = sum(w03_participation, na.rm = TRUE),
+    w04 = sum(w04_participation, na.rm = TRUE),
+    w05 = sum(w05_participation, na.rm = TRUE),
+    w06 = sum(w06_participation, na.rm = TRUE),
+    w07 = sum(w07_participation, na.rm = TRUE),
+    total_participants = n()
+  )
+
+# get age for male and female participants per wave
+p_age <- dat_demographics %>%
+  group_by(sex_c) %>%
+  summarise(
+    w01 = mean(w01_age_c, na.rm = TRUE),
+    w02 = mean(w02_age_c, na.rm = TRUE),
+    w03 = mean(w03_age_c, na.rm = TRUE),
+    w04 = mean(w04_age_c, na.rm = TRUE),
+    w05 = mean(w05_age_c, na.rm = TRUE),
+    w06 = mean(w06_age_c, na.rm = TRUE),
+    w07 = mean(w07_age, na.rm = TRUE),
+    total_participants = n()
+  )
+
+# print with more digits
+print.data.frame(p_age, digits = 5); remove(p_age)
+
+#### BIS subscale -----------------------------------------------------------------------------------------------------------
+
+p_bis <- ddtvar_long %>%
+  group_by(sex_c, wave) %>%
+  summarise(
+    mean_bis = mean(bisbas_bis, na.rm = TRUE),
+    sd_bis = sd(bisbas_bis, na.rm = TRUE),
+    n = n()
+  )
+
+# print with more digits
+print.data.frame(p_bis, digits = 5); remove(p_bis)
+
+#### BAS subscale -----------------------------------------------------------------------------------------------------------
+
+p_bas <- ddtvar_long %>%
+  group_by(sex_c, wave) %>%
+  summarise(
+    mean_bas = mean(bisbas_bas, na.rm = TRUE),
+    sd_bas = sd(bisbas_bas, na.rm = TRUE),
+    n = n()
+  )
+
+# print with more digits
+print.data.frame(p_bas, digits = 5); remove(p_bas)
+
+#### SDQ scale --------------------------------------------------------------------------------------------------------------
+
+p_sdq <- ddtvar_long %>%
+  group_by(sex_c, wave) %>%
+  summarise(
+    mean_sdq = mean(sdq_total, na.rm = TRUE),
+    sd_sdq = sd(sdq_total, na.rm = TRUE),
+    n = n()
+  )
+
+# print with more digits
+print.data.frame(p_sdq, digits = 5); remove(p_sdq)
+
+#### HSCS scale -------------------------------------------------------------------------------------------------------------
+
+p_hscs <- ddtvar_long %>%
+  group_by(sex_c, wave) %>%
+  summarise(
+    mean_hscs = mean(hscs_total, na.rm = TRUE),
+    sd_hscs = sd(hscs_total, na.rm = TRUE),
+    n = n()
+  )
+
+# print with more digits
+print.data.frame(p_hscs, digits = 5); remove(p_hscs)
+
+#### EATQ-EC subscale -------------------------------------------------------------------------------------------------------
+
+p_eatq <- ddtvar_long %>%
+  group_by(sex_c, wave) %>%
+  summarise(
+    mean_eatq = mean(eatq_ec_total, na.rm = TRUE),
+    sd_eatq = sd(eatq_ec_total, na.rm = TRUE),
+    n = n()
+  )
+
+# print with more digits
+print.data.frame(p_eatq, digits = 5); remove(p_eatq)
+
+#### Social media use -------------------------------------------------------------------------------------------------------
+
+p_sm <- ddtvar_long %>%
+  group_by(sex_c, wave) %>%
+  summarise(
+    mean_sm = mean(sm_postandscroll, na.rm = TRUE),
+    sd_sm = sd(sm_postandscroll, na.rm = TRUE),
+    n = n()
+  )
+
+# print with more digits
+print.data.frame(p_sm, digits = 5); remove(p_sm)
+
+#### Social media use -------------------------------------------------------------------------------------------------------
+
+p_cius <- ddtvar_long %>%
+  group_by(sex_c, wave) %>%
+  summarise(
+    mean_cius = mean(cius_total, na.rm = TRUE),
+    sd_cius = sd(cius_total, na.rm = TRUE),
+    n = n()
+  )
+
+# print with more digits
+print.data.frame(p_cius, digits = 5); remove(p_cius)
+
 ### Examine Missingness -----------------------------------------------------------------------------------------------------
 
 ddtvar_wide %>% # Check variables of high missingness in Wave 7
