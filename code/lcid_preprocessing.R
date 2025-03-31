@@ -140,7 +140,9 @@ process_questionnaires <- function(df) {
     df %<>%
       dplyr::mutate(across(dplyr::contains("EATQ_EC"), ~ ifelse(. == 7, 5, .))) %>% # recode maximum
       dplyr::mutate(across(all_of(dplyr::contains(eatq_reverse_coded)), ~ reverse_code(.))) %>% # reverse code relevant items
-      dplyr::mutate(eatq_ec_total = rowSums(dplyr::select(., dplyr::contains("EATQ_EC")), na.rm = FALSE))
+      dplyr::mutate(eatq_ec_total = rowSums(
+        dplyr::select(., dplyr::contains("EATQ_EC") & !dplyr::contains("Wildman")), na.rm = FALSE))
+
   }
 
   #### BISBAS scale ---------------------------------------------------------------------------------------------------------
@@ -631,3 +633,4 @@ lcid_plot <- inclusion_lcid %>%
 
 # save plot to working directory
 ggplot2::ggsave(here("output", "sample", "lcid_samplesize.png"), dpi = 1200)
+
