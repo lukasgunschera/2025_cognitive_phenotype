@@ -195,10 +195,17 @@ process_questionnaires <- function(df) {
 
   #### HSC scale ------------------------------------------------------------------------------------------------------------
 
+  if(wave_value != 6){
   df %<>%
-    dplyr::mutate(across(dplyr::contains("HSCS"), ~ ifelse(. >= 5, . - 1, .)), # recode maximum
+    dplyr::mutate(across(dplyr::contains("HSCS"), ~ ifelse(. >= 5, . - 1, .)), # recode maximum to 7
       hscs_total = rowSums(dplyr::select(., dplyr::contains("HSCS")), na.rm = FALSE)
     )
+  } else {
+
+    df %<>%
+      dplyr::mutate(hscs_total = rowSums(dplyr::select(., dplyr::contains("HSCS")), na.rm = FALSE))
+
+  }
 
   #### SDQ scale -------------------------------------------------------------------------------------------------------------
 
