@@ -202,19 +202,23 @@ process_questionnaires <- function(df) {
 
   # sample vector
   sdq_colnames <- c(
-    "w06_sdq_prosocial_q1_c", "w06_sdq_hyper_q2_c", "w06_sdq_emotional_q3_c", "w06_sdq_prosocial_q4_c",
-    "w06_sdq_conduct_q5_c", "w06_sdq_peer_q6_c", "w06_sdq_conduct_q7_c", "w06_sdq_emotional_q8_c",
-    "w06_sdq_prosocial_q9_c", "w06_sdq_hyper_q10_c", "w06_sdq_peer_q11_c", "w06_sdq_conduct_q12_c",
-    "w06_sdq_emotional_q13_c", "w06_sdq_peer_q14_c", "w06_sdq_hyper_q15_c", "w06_sdq_emotional_q16_c",
-    "w06_sdq_prosocial_q17_c", "w06_sdq_conduct_q18_c", "w06_sdq_peer_q19_c", "w06_sdq_prosocial_q20_c",
-    "w06_sdq_hyper_q21_c", "w06_sdq_conduct_q22_c", "w06_sdq_peer_q23_c", "w06_sdq_emotional_q24_c",
-    "w06_sdq_hyper_q25_c"
+    "w07_sdq_prosocial_q1_c", "w07_sdq_hyper_q2_c", "w07_sdq_emotional_q3_c", "w07_sdq_prosocial_q4_c",
+    "w07_sdq_conduct_q5_c", "w07_sdq_peer_q6_c", "w07_sdq_conduct_q7_c", "w07_sdq_emotional_q8_c",
+    "w07_sdq_prosocial_q9_c", "w07_sdq_hyper_q10_c", "w07_sdq_peer_q11_c", "w07_sdq_conduct_q12_c",
+    "w07_sdq_emotional_q13_c", "w07_sdq_peer_q14_c", "w07_sdq_hyper_q15_c", "w07_sdq_emotional_q16_c",
+    "w07_sdq_prosocial_q17_c", "w07_sdq_conduct_q18_c", "w07_sdq_peer_q19_c", "w07_sdq_prosocial_q20_c",
+    "w07_sdq_hyper_q21_c", "w07_sdq_conduct_q22_c", "w07_sdq_peer_q23_c", "w07_sdq_emotional_q24_c",
+    "w07_sdq_hyper_q25_c"
   )
 
   if (wave_value == 7) { # SDQ Formatting Wave 7
 
     df %<>%
       rename_with(~sdq_colnames, .cols = contains("SDQ_Self"))
+
+    # recode for 0 to be the lowest answer option
+    df %<>%
+      mutate(across(contains(sdq_colnames), ~ . - 1))
   }
 
   # items to be reversed
