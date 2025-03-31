@@ -22,6 +22,7 @@ library(readr)
 library(haven)
 library(tidyr)
 library(dplyr)
+library(tibble)
 library(ggplot2)
 library(ggpmisc)
 library(viridis)
@@ -32,16 +33,6 @@ library(ggcorrplot)
 library(errorlocate)
 library(viridisLite)
 library(PupillometryR)
-
-# set global parameters determining the model fitting process
-FIT_MODEL <- TRUE # TRUE will fit model to data, FALSE will skip model fitting
-FIT_ALLDATA <- TRUE # TRUE will fit model to all participants, FALSE will fit model to a subset of participants
-FIT_CLUSTER <- FALSE # TRUE will fit model on high performance computing cluster (hard-coded and may require adjustments)
-
-ITER_WARMUP <- 2000 # Set warm up iterations for later models
-ITER_SAMPLING <- 10000 # Set sampling iterations for later models
-
-NUM_CORES <- parallel::detectCores() - 1 # Set cores to use for computation
 
 # set directory
 here::i_am("renv.lock") # set directory
@@ -172,3 +163,158 @@ summary(validate::confront(
     r7 = w07_age >= 12.75
   )
 ))
+
+## AUXILIARY VARIABLES ======================================================================================================
+
+ddtvar_wide <- ddtvar %>%
+  mutate(
+    w05_missing = is.na(w05_sm_total),
+    w06_missing = is.na(w06_sm_total),
+    w07_missing = is.na(w07_sm_total)
+  ) %>%
+  mutate(
+    w05_missing = as.integer(as.logical(w05_missing)),
+    w06_missing = as.integer(as.logical(w06_missing)),
+    w07_missing = as.integer(as.logical(w07_missing))
+  )
+
+# Initialise colnames object for each wave
+wave_05_columns <- grep("^w05", names(ddtvar_wide), value = TRUE)
+wave_06_columns <- grep("^w06", names(ddtvar_wide), value = TRUE)
+wave_07_columns <- grep("^w07", names(ddtvar_wide), value = TRUE)
+
+### Logistic Regressions ----------------------------------------------------------------------------------------------------
+
+auxvars <- misty::na.auxiliary(ddtvar_wide, tri = "lower", digits = 3)
+
+# Add rowname to create correlation matrix
+aux_tbl <- auxvars$result$cor %>%
+  as_tibble() %>%
+  add_column(var_id = auxvars$result$cor %>% row.names())
+
+#### Missingness predictor --------------------------------------------------------------------------------------------------
+
+aux_miss <- aux_tbl %>%
+  pivot_longer(
+    cols = contains("_missing"),
+    names_to = "missing",
+    values_to = "value"
+  ) %>%
+  mutate(
+    value = abs(value)
+  ) %>%
+  select(missing, var_id, value) %>%
+  filter(!str_detect(var_id, "dropout|missing|participation|hdi|X.1|logk|pds_k|pds_g")) %>%
+  arrange(desc(value))
+
+# Remove the wave prefixes from the variable names
+aux_miss %<>%
+  mutate(
+    missing_clean = str_replace(missing, "^(w05_|w06_|w07_)", "")
+  )
+
+# Group by the cleaned variable names and calculate the average correlation
+aux_miss_corrs <- aux_miss %>%
+  group_by(var_id, missing_clean) %>%
+  summarise(avg_value = mean(value, na.rm = TRUE), .groups = 'drop') %>%
+  arrange(desc(avg_value))
+
+#### Delay discounting predictors -------------------------------------------------------------------------------------------
+
+aux_log <- aux_tbl %>%
+  select(-contains("w02_logk"), -contains("w03_logk"), -contains("w04_logk")) %>%
+  pivot_longer(
+    cols = matches("_logk(?!.*hdi)", perl = TRUE),
+    names_to = "logk",
+    values_to = "value"
+  ) %>%
+  mutate(
+    value = abs(value)
+  ) %>%
+  filter(!str_detect(var_id, "dropout|missing|participation|hdi|X.1|estimate|logk|pds_k|pds_g")) %>%
+  select(logk, var_id, value) %>%
+  arrange(desc(value))
+
+# Remove the wave prefixes from the variable names
+aux_log %<>%
+  mutate(
+    log_clean = str_replace(logk, "^(w05_|w06_|w07_)", "")
+  )
+
+# Group by the cleaned variable names and calculate the average correlation
+aux_log_corrs <- aux_log %>%
+  group_by(var_id, log_clean) %>%
+  summarise(avg_value = mean(value, na.rm = TRUE), .groups = 'drop') %>%
+  arrange(desc(avg_value))
+
+#### Social media use predictors --------------------------------------------------------------------------------------------
+
+aux_sm <- aux_tbl %>%
+  pivot_longer(
+    cols = contains("sm_postandscroll"),
+    names_to = "sm_postandscroll",
+    values_to = "value"
+  ) %>%
+  mutate(
+    value = abs(value)
+  ) %>%
+  filter(!str_detect(var_id, "dropout|missing|participation|hdi|X.1|sm|logk|estimate|pds_k|pds_g")) %>%
+  select(sm_postandscroll, var_id, value) %>%
+  arrange(desc(value))
+
+# Remove the wave prefixes from the variable names
+aux_sm %<>%
+  mutate(
+    sm_clean = str_replace(sm_postandscroll, "^(w05_|w06_|w07_)", "")
+  )
+
+# Group by the cleaned variable names and calculate the average correlation
+aux_sm_corrs <- aux_sm %>%
+  group_by(var_id, sm_clean) %>%
+  summarise(avg_value = mean(value, na.rm = TRUE), .groups = 'drop') %>%
+  arrange(desc(avg_value))
+
+combined_aux <- aux_sm_corrs %>%
+  rename(avg_value_sm = avg_value) %>%
+  full_join(aux_miss_corrs %>% rename(avg_value_miss = avg_value), by = c("var_id")) %>%
+  full_join(aux_log_corrs %>% rename(avg_value_logk = avg_value), by = c("var_id"))
+
+combined_aux <- combined_aux %>%
+  rowwise() %>%
+  mutate(
+    avg_correlation = mean(c(avg_value_sm, avg_value_miss, avg_value_logk), na.rm = TRUE)
+  ) %>%
+  ungroup() %>%
+  select(avg_correlation, var_id) %>%
+
+  # remove indicators that are subject-specific or duplicates (e.g., pds items specific to girls or boys)
+  filter(!str_detect(var_id, "sex_c|pds_b|pds_g")) %>%
+  arrange(desc(avg_correlation)) %>%
+  filter(avg_correlation > .1)
+
+
+aux_vars <- combined_aux %>% slice_head(n = 10) %>% pull(var_id) %>% as.character(.)
+aux_vars_sm <- aux_sm_corrs %>%  slice_head(n = 10) %>% pull(var_id) %>% as.character(.)
+aux_vars_miss <- aux_miss_corrs %>% slice_head(n = 10) %>% pull(var_id) %>% as.character(.)
+aux_vars_log <- aux_log_corrs %>%  slice_head(n = 10) %>% pull(var_id) %>% as.character(.)
+
+union(aux_vars, aux_vars_sm) %>%
+  union(.,  aux_vars_miss) %>%
+  union(., aux_vars_log)
+
+# Save resulting variables in vector to be called in 'lcid_mplus_processing.R'
+aux_variables <- c("w05_cius_total", "w06_cius_total", "w05_sex", "ses", "w01_education_op",
+                   "w06_bsi_total", "w06_bsi_depression", "w06_bsi_anxiety",
+                   "w07_bsi_total", "w07_bsi_depression", "w07_bsi_anxiety",
+                   "w07_pds_2", "w05_pds_total", "w06_pds_total", "w07_pds_total")
+
+saveRDS(aux_variables, here::here("data", "processed", "auxiliary_variables.rds"))
+
+## ======================================================================================================================= ##
+# The selection of the auxiliary variables is determined by the above logistic regressions. The selection criteria applied are
+# arbitrary and based on a) the average correlation between the construct and the variables included in the model, b) parsimony,
+# and c) measurement consistency (is the measure available for waves 5, 6, and 7).
+#
+# These variables are included as 'Auxiliary' in all MPLUS models to follow, and serve to make the FIML computation more accurate
+## ======================================================================================================================= ##
+
