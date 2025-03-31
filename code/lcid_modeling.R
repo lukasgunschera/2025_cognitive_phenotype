@@ -259,17 +259,17 @@ dd_hyperbo_check_06 <- readRDS(here::here("output", "modelfit", "dd_hyperbo_chec
 
 # RHAT extreme across waves
 rhat_values <- c(
-  dd_hyperbo_check_02$Rhat[[6]], dd_hyperbo_check_03$Rhat[[6]], dd_hyperbo_check_04$Rhat[[6]],
-  dd_hyperbo_check_05$Rhat[[6]], dd_hyperbo_check_06$Rhat[[6]]
+  dd_hyperbo_check_02[[1]][[6]], dd_hyperbo_check_03[[1]][[6]], dd_hyperbo_check_04[[1]][[6]],
+  dd_hyperbo_check_05[[1]][[6]], dd_hyperbo_check_06[[1]][[6]]
 )
 
 rhat_values[which.max(abs(rhat_values))]
 
 # ESS minimum across waves
-min(
-  dd_hyperbo_check_02$ess[[1]], dd_hyperbo_check_03$ess[[1]], dd_hyperbo_check_04$ess[[1]],
-  dd_hyperbo_check_05$ess[[1]], dd_hyperbo_check_06$ess[[1]]
-)
+print(min(
+  dd_hyperbo_check_02$ess[[1]], dd_hyperbo_check_03[[2]][[1]], dd_hyperbo_check_04[[2]][[1]],
+  dd_hyperbo_check_05[[2]][[1]], dd_hyperbo_check_06[[2]][[1]]
+), digits = 10)
 
 ### Examine Posterior Predictives -------------------------------------------------------------------------------------------
 ppc02 <- readRDS(here::here("output", "modelfit", "dd_hyperbo_ppc_02.RDS"))
