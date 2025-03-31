@@ -234,7 +234,7 @@ p_sm <- ddtvar_long %>%
 # print with more digits
 print.data.frame(p_sm, digits = 5); remove(p_sm)
 
-#### Social media use -------------------------------------------------------------------------------------------------------
+#### Compulsive social media use --------------------------------------------------------------------------------------------
 
 p_cius <- ddtvar_long %>%
   group_by(sex_c, wave) %>%
@@ -246,6 +246,19 @@ p_cius <- ddtvar_long %>%
 
 # print with more digits
 print.data.frame(p_cius, digits = 5); remove(p_cius)
+
+#### Delay discounting ------------------------------------------------------------------------------------------------------
+
+p_logk <- ddtvar_long %>%
+  group_by(sex_c, wave) %>%
+  summarise(
+    mean_logk = mean(logk, na.rm = TRUE),
+    sd_logk = sd(logk, na.rm = TRUE),
+    n = n()
+  )
+
+# print with more digits
+print.data.frame(p_logk, digits = 4); remove(p_logk)
 
 ### Examine Missingness -----------------------------------------------------------------------------------------------------
 
