@@ -36,6 +36,7 @@ library(ggthemes)
 library(magrittr)
 library(lmerTest)
 library(tidybayes)
+library(ggeffects)
 library(effectsize)
 library(ggcorrplot)
 library(colorspace)
@@ -234,7 +235,7 @@ p_sm <- ddtvar_long %>%
 # print with more digits
 print.data.frame(p_sm, digits = 5); remove(p_sm)
 
-#### Compulsive social media use --------------------------------------------------------------------------------------------
+#### Compulsive Internet Use --------------------------------------------------------------------------------------------
 
 p_cius <- ddtvar_long %>%
   group_by(sex_c, wave) %>%
@@ -401,34 +402,35 @@ ggplot2::ggsave(gg_age_choice,
   path = here("output", "images"), filename = "age_choice_interaction.png", dpi = 1200, device = "png"
 )
 
-#### Social media -----------------------------------------------------------------------------------------------------------
+#### Social media ~ age -----------------------------------------------------------------------------------------------------
 
 sm_ps_age <- lmerTest::lmer(sm_postandscroll ~ age + (1 | subjID), data = ddtvar_long)
 std_coef <- effectsize::standardize_parameters(sm_ps_age, method = "refit")
 
 # examine results and standardised coefficients
-summary(sm_ps_age)
+print(summary(sm_ps_age), digits = 5)
 print(std_coef, digits = 5)
 
 # get R square
 MuMIn::r.squaredGLMM(sm_ps_age)
 
 # get predicted social media use
-pred <- ggpredict(sm_ps_age, terms = "age")
+pred <- ggeffects::ggpredict(sm_ps_age, terms = "age")
+print(pred, digits = 4)
 
-#### Compulsive social media use --------------------------------------------------------------------------------------------
+#### Compulsive Internet Use ~ age --------------------------------------------------------------------------------------
 
 cius_ps_age <- lmerTest::lmer(cius_total ~ age + (1 | subjID), data = ddtvar_long)
 std_coef_cius <- effectsize::standardize_parameters(cius_ps_age, method = "refit")
 
 # examine results and standardised coefficients
-summary(cius_ps_age)
-print(std_coef_cius, digits = 5)
+print(summary(cius_ps_age), digits = 5)
+print(std_coef_cius, digits = 3)
 
 # get R square
 MuMIn::r.squaredGLMM(cius_ps_age)
 
-pred <- ggpredict(cius_ps_age, terms = "age")
+pred <- ggeffects::ggpredict(cius_ps_age, terms = "age")
 
 ## DELAY DISCOUNTING PARAMETERS =============================================================================================
 
@@ -478,13 +480,64 @@ ggplot2::ggsave(
   filename = "logk_density.png", dpi = 1200, device = "png"
 )
 
-### Delay Discounting ~ Social Media Use ------------------------------------------------------------------------------------
+### Proportion of offers accepted ~ Age -------------------------------------------------------------------------------------
+
+dd_merge <- readRDS(file = here("data", "processed", "dd_choice_data.RDS"))
+
+lmer_choice_age <- lmerTest::lmer(prop ~ age + (1 | subjID), data = dd_merge %>% filter(choice == "prop_later"))
+
+std_coef <- effectsize::standardize_parameters(lmer_choice_age, method = "refit")
+
+# examine results and standardised coefficients
+print(summary(lmer_choice_age), digits = 8)
+print(std_coef, digits = 5)
+
+# get R square
+MuMIn::r.squaredGLMM(lmer_choice_age)
+
+# get predicted behaviour
+pred <- ggeffects::ggpredict(lmer_choice_age, terms = "age")
+
+### Delay discounting ~ Age -------------------------------------------------------------------------------------
+
+lmer_logk_age <- lmerTest::lmer(logk ~ age + (1 | subjID), data = dd_merge)
+
+std_coef <- effectsize::standardize_parameters(lmer_logk_age, method = "refit")
+
+# examine results and standardised coefficients
+print(summary(lmer_logk_age), digits = 8)
+print(std_coef, digits = 5)
+
+# get R square
+MuMIn::r.squaredGLMM(lmer_logk_age)
+
+# get predicted behaviour
+pred <- ggeffects::ggpredict(lmer_logk_age, terms = "age")
+
+
+### Proportion of offers accepted ~ Delay discounting -----------------------------------------------------------------------
+
+lmer_choice_logk <- lmerTest::lmer(prop ~ logk + (1 | subjID), data = dd_merge %>% filter(choice == "prop_later"))
+
+std_coef <- effectsize::standardize_parameters(lmer_choice_logk, method = "refit")
+
+# examine results and standardised coefficients
+print(summary(lmer_choice_logk), digits = 8)
+print(std_coef, digits = 5)
+
+# get R square
+MuMIn::r.squaredGLMM(lmer_choice_logk)
+
+# get predicted behaviour
+pred <- ggeffects::ggpredict(lmer_choice_logk, terms = "age")
+
+### Social Media Use ~ Delay Discounting ------------------------------------------------------------------------------------
 
 lmer_logk_sm <- lmerTest::lmer(sm_postandscroll ~ logk + (1 | subjID), data = ddtvar_long)
 std_coef <- effectsize::standardize_parameters(lmer_logk_sm, method = "refit")
 
 # examine results and standardised coefficients
-print(summary(lmer_logk_sm), digits = 5)
+print(summary(lmer_logk_sm), digits = 6)
 print(std_coef, digits = 5)
 
 # get R square
@@ -493,7 +546,7 @@ MuMIn::r.squaredGLMM(lmer_logk_sm)
 # get predicted social media use
 pred <- ggpredict(lmer_logk_sm, terms = "logk")
 
-### Delay discounting ~ Compulsive Social Media Use -------------------------------------------------------------------------
+### Compulsive Internet Use ~ Delay discounting -----------------------------------------------------------------------------
 
 lmer_logk_cius <- lmerTest::lmer(cius_total ~ logk + (1 | subjID), data = ddtvar_long)
 std_coef <- effectsize::standardize_parameters(lmer_logk_cius, method = "refit")
@@ -975,9 +1028,9 @@ ggplot2::ggsave(lcid_sm_videocall_den,
   filename = "sm_videocall_box.png", dpi = 1200, device = "png"
 )
 
-### PLOTS: Compulsive Social Media Use --------------------------------------------------------------------------------------
+### PLOTS: Compulsive Internet Use --------------------------------------------------------------------------------------
 
-#### PLOT: Compulsive social media use across waves -------------------------------------------------------------------------
+#### PLOT: Compulsive Internet Use across waves -------------------------------------------------------------------------
 
 lcid_cius_tot_den <- ddtvar_long %>%
   # Format data for plotting
@@ -1016,7 +1069,7 @@ ggplot2::ggsave(lcid_cius_tot_den,
   filename = "cius_density.png", dpi = 1200, device = "png"
 )
 
-#### PLOT: Compulsive social media use across age ---------------------------------------------------------------------------
+#### PLOT: Compulsive Internet Use across age ---------------------------------------------------------------------------
 
 dd_cius_age <- ddtvar_long %>%
   dplyr::filter(!is.na(cius_total)) %>%
@@ -1042,7 +1095,7 @@ ggplot2::ggsave(dd_cius_age,
   filename = "cius_age.png", dpi = 1200, device = "png"
 )
 
-#### PLOT: Compulsive social media use and mental wellbeing indicator correlations ------------------------------------------
+#### PLOT: Compulsive Internet Use and mental wellbeing indicator correlations ------------------------------------------
 
 ddcors <- ddtvar_wide %>%
   select(
@@ -1110,7 +1163,7 @@ sm_cius_corr <- ddtvar_long_clean %>%
   annotate("segment", x = -Inf, xend = -Inf, y = 10, yend = 40, colour = "#2E2E2E", lwd = 0.75) +
   annotate("segment", x = 0, xend = 5, y = -Inf, yend = -Inf, colour = "#2E2E2E", lwd = 0.75) +
   stat_poly_eq(method = "lm", label.x = .95, label.y = .95, aes(label = paste(..eq.label.., sep = "~~~")), parse = TRUE) +
-  labs(x = "Time spent (Posting and Scrolling)", y = "Compulsive social media use", colour = "Residual") +
+  labs(x = "Time spent (Posting and Scrolling)", y = "Compulsive internet use", colour = "Residual") +
   scale_colour_viridis(option = "D", alpha = 1)
 
 sm_cius_corr_mar <- ggExtra::ggMarginal(sm_cius_corr, type = "density", size = 5, margins = "y", fill = "transparent")
@@ -1128,7 +1181,7 @@ sm_cius_dens <- ddtvar_long %>%
   plot_theme +
   aspect_ratio_balanced +
   labs(
-    x = "Compulsive social media use",
+    x = "Compulsive Internet Use",
     y = "Time spent",
     fill = "Time spent"
   ) +
@@ -1443,7 +1496,7 @@ ggplot2::ggsave(dd_w06_mod,
   filename = "w06_mod.png", dpi = 1200, device = "png"
 )
 
-#### PLOT: Delay discounting moderation of compulsive social media use wave 6 -----------------------------------------------
+#### PLOT: Delay discounting moderation of Compulsive Internet Use wave 6 -----------------------------------------------
 
 dd_w06_mod_cius <- ddtvar_wide %>%
   filter(!is.na(w05_logk), !is.na(w05_cius_total), !is.na(w06_bisbas_total)) %>%
@@ -1645,7 +1698,7 @@ ggplot2::ggsave(dd_sm_logk,
   filename = "dd_sm_logk_smooth.png", dpi = 1200, device = "png"
 )
 
-#### PLOT: Delay discounting ~ compulsive social media use ------------------------------------------------------------------
+#### PLOT: Delay discounting ~ Compulsive Internet Use ------------------------------------------------------------------
 
 lm_fit <- lm(cius_total ~ logk, data = ddtvar_long %>% filter(!is.na(logk), !is.na(cius_total)))
 
@@ -1921,7 +1974,7 @@ ggplot2::ggsave(dd_sm_beta,
   filename = "dd_sm_beta_smooth.png", dpi = 1200, device = "png"
 )
 
-#### PLOT: Inverse temperature (beta) ~ compulsive social media use ---------------------------------------------------------
+#### PLOT: Inverse temperature (beta) ~ Compulsive Internet Use ---------------------------------------------------------
 
 lm_fit_beta <- lm(cius_total ~ estimate_beta, data = ddtvar_long %>% filter(!is.na(estimate_beta), !is.na(cius_total)))
 
