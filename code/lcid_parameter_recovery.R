@@ -253,7 +253,7 @@ dd_par_pr %<>%
 
 # Examine correlations between simulated and recovered parameters, both log and not log transformed
 cor(dd_par_pr$value[dd_par_pr$parameter == "beta"], dd_par_pr$value_rec[dd_par_pr$parameter == "beta"])
-cor(dd_par_pr$value[dd_par_pr$parameter == "k"], dd_par_pr$value_rec[dd_par_pr$parameter == "k"])
+print(cor.test(dd_par_pr$value[dd_par_pr$parameter == "k"], dd_par_pr$value_rec[dd_par_pr$parameter == "k"]), digits = 8)
 cor(dd_par_pr$value[dd_par_pr$parameter == "beta"], dd_par_pr$value_rec[dd_par_pr$parameter == "k"])
 cor(dd_par_pr$value[dd_par_pr$parameter == "k"], dd_par_pr$value_rec[dd_par_pr$parameter == "beta"])
 
@@ -289,7 +289,7 @@ ggplot2::ggsave(prb_corplot,
 )
 
 # examine spearman rank order correlations between simulated and recovered parameters, both log and not log transformed
-cor(dd_par_pr$value[dd_par_pr$parameter == "k"], dd_par_pr$value_rec[dd_par_pr$parameter == "k"], method = "spearman")
+print(cor.test(dd_par_pr$value[dd_par_pr$parameter == "k"], dd_par_pr$value_rec[dd_par_pr$parameter == "k"], method = "spearman"), digits = 8)
 cor(dd_par_pr$value[dd_par_pr$parameter == "beta"], dd_par_pr$value_rec[dd_par_pr$parameter == "beta"], method = "spearman")
 cor(dd_par_pr$value[dd_par_pr$parameter == "k"], dd_par_pr$value_rec[dd_par_pr$parameter == "beta"], method = "spearman")
 cor(dd_par_pr$value[dd_par_pr$parameter == "beta"], dd_par_pr$value_rec[dd_par_pr$parameter == "k"], method = "spearman")
