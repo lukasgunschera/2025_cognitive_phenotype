@@ -283,7 +283,7 @@ pr_corplot <- ggcorrplot::ggcorrplot(
   lab_size = 9, show.legend = FALSE, colors = c("#feca8d", "#fcfdbf", "#6ece58")
 )
 
-ggplot2::ggsave(prb_corplot,
+ggplot2::ggsave(pr_corplot,
   path = here::here("output", "parameter_recovery", "images"),
   filename = "parameter_recovery.png", dpi = 1200, device = "png"
 )
@@ -340,3 +340,7 @@ ggsave(prec_logk,
   path = here::here("output", "parameter_recovery", "images"),
   filename = "parameter_recovery_logk.png", dpi = 1200, device = "png"
 )
+
+ggarrange(pr_corplot, prec_logk,
+          labels = c("A", "B"),
+          ncol = 2, nrow = 2)
