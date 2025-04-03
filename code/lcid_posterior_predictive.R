@@ -64,12 +64,6 @@ ppc04_corr <- ppc_correlate(ppc04, " Wave 4")
 ppc05_corr <- ppc_correlate(ppc05, " Wave 5")
 ppc06_corr <- ppc_correlate(ppc06, " Wave 6")
 
-print(cor.test(ppc02$mean_real_choice, ppc02$mean_pred_choice), digits = 7)
-print(cor.test(ppc03$mean_real_choice, ppc03$mean_pred_choice), digits = 7)
-print(cor.test(ppc04$mean_real_choice, ppc04$mean_pred_choice), digits = 7)
-print(cor.test(ppc05$mean_real_choice, ppc05$mean_pred_choice), digits = 7)
-print(cor.test(ppc06$mean_real_choice, ppc06$mean_pred_choice), digits = 7)
-
 # Combine the results into a single table
 ppc_table <- bind_rows(ppc02_corr, ppc03_corr, ppc04_corr, ppc05_corr, ppc06_corr) %>%
   knitr::kable(., caption = "Correlations of predicted and real choices", align = "l", digits = 3)
@@ -78,7 +72,7 @@ ppc_table <- bind_rows(ppc02_corr, ppc03_corr, ppc04_corr, ppc05_corr, ppc06_cor
 ppcplot2 <- ppc02 %>%
   dplyr::mutate(real_delay_later = factor(real_delay_later)) %>%
   ggplot(aes(x = mean_real_choice, y = mean_pred_choice, colour = real_delay_later)) +
-  geom_point(shape = 16, alpha = .75, position = position_jitter(width = .05), size = 2) +
+  geom_point(shape = 16, alpha = .75, position = position_jitter(width = .05), size = 3) +
   geom_smooth(method = "lm", color = "#2E2E2E", fullrange = TRUE) +
   plot_theme +
   aspect_ratio_square +
@@ -92,7 +86,7 @@ ppcplot2 <- ppc02 %>%
 ppcplot3 <- ppc03 %>%
   dplyr::mutate(real_delay_later = factor(real_delay_later)) %>%
   ggplot(aes(x = mean_real_choice, y = mean_pred_choice, colour = real_delay_later)) +
-  geom_point(shape = 16, alpha = .75, position = position_jitter(width = .05), size = 2) +
+  geom_point(shape = 16, alpha = .75, position = position_jitter(width = .05), size = 3) +
   geom_smooth(method = "lm", color = "#2E2E2E", fullrange = TRUE) +
   plot_theme +
   aspect_ratio_square +
@@ -106,7 +100,7 @@ ppcplot3 <- ppc03 %>%
 ppcplot4 <- ppc04 %>%
   dplyr::mutate(real_delay_later = factor(real_delay_later)) %>%
   ggplot(aes(x = mean_real_choice, y = mean_pred_choice, colour = real_delay_later)) +
-  geom_point(shape = 16, alpha = .75, position = position_jitter(width = .05), size = 2) +
+  geom_point(shape = 16, alpha = .75, position = position_jitter(width = .05), size = 3) +
   geom_smooth(method = "lm", color = "#2E2E2E", fullrange = TRUE) +
   plot_theme +
   aspect_ratio_square +
@@ -120,7 +114,7 @@ ppcplot4 <- ppc04 %>%
 ppcplot5 <- ppc05 %>%
   dplyr::mutate(real_delay_later = factor(real_delay_later)) %>%
   ggplot(aes(x = mean_real_choice, y = mean_pred_choice, colour = real_delay_later)) +
-  geom_point(shape = 16, alpha = .75, position = position_jitter(width = .05), size = 2) +
+  geom_point(shape = 16, alpha = .75, position = position_jitter(width = .05), size = 3) +
   geom_smooth(method = "lm", color = "#2E2E2E", fullrange = TRUE) +
   plot_theme +
   aspect_ratio_square +
@@ -134,7 +128,7 @@ ppcplot5 <- ppc05 %>%
 ppcplot6 <- ppc06 %>%
   dplyr::mutate(real_delay_later = factor(real_delay_later)) %>%
   ggplot(aes(x = mean_real_choice, y = mean_pred_choice, colour = real_delay_later)) +
-  geom_point(shape = 16, alpha = .75, position = position_jitter(width = .05), size = 2) +
+  geom_point(shape = 16, alpha = .75, position = position_jitter(width = .05), size = 3) +
   geom_smooth(method = "lm", color = "#2E2E2E", fullrange = TRUE) +
   plot_theme +
   aspect_ratio_square +
@@ -149,23 +143,23 @@ ppcplot6 <- ppcplot6 +
   theme(legend.position = "right") +
   labs(colour = "Delay level") +
   ggtitle("Wave 6") +
-  theme(plot.title = element_text(vjust = -2, size = 12))
+  theme(plot.title = element_text(vjust = -5, size = 12))
 
 ppcplot5 <- ppcplot5 +
   ggtitle("Wave 5") +
-  theme(plot.title = element_text(vjust = -2, size = 12))
+  theme(plot.title = element_text(vjust = -5, size = 12))
 
 ppcplot4 <- ppcplot4 +
   ggtitle("Wave 4") +
-  theme(plot.title = element_text(vjust = -2, size = 12))
+  theme(plot.title = element_text(vjust = -5, size = 12))
 
 ppcplot3 <- ppcplot3 +
   ggtitle("Wave 3") +
-  theme(plot.title = element_text(vjust = -2, size = 12))
+  theme(plot.title = element_text(vjust = -5, size = 12))
 
 ppcplot2 <- ppcplot2 +
   ggtitle("Wave 2") +
-  theme(plot.title = element_text(vjust = -2, size = 12))
+  theme(plot.title = element_text(vjust = -5, size = 12))
 
 # create layout of mergerd plot
 layout <- c(
