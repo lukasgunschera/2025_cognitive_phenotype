@@ -248,12 +248,13 @@ dd_par_pr %<>%
   dplyr::mutate(
     rec_precision = abs(hdi_upper_rec - hdi_lower_rec),
     rec_fit = predict(lm(value_rec ~ value, data = .)),
-    resid = abs(value_rec - rec_fit)
+    resid = abs(value_rec - rec_fit),
+    rec_cor = cor(-log(value_rec), -log(rec_fit), use = "pairwise.complete.obs"),
   )
 
 # Examine correlations between simulated and recovered parameters, both log and not log transformed
 cor(dd_par_pr$value[dd_par_pr$parameter == "beta"], dd_par_pr$value_rec[dd_par_pr$parameter == "beta"])
-cor(dd_par_pr$value[dd_par_pr$parameter == "k"], dd_par_pr$value_rec[dd_par_pr$parameter == "k"])
+print(cor.test(dd_par_pr$value[dd_par_pr$parameter == "k"], dd_par_pr$value_rec[dd_par_pr$parameter == "k"]), digits = 8)
 cor(dd_par_pr$value[dd_par_pr$parameter == "beta"], dd_par_pr$value_rec[dd_par_pr$parameter == "k"])
 cor(dd_par_pr$value[dd_par_pr$parameter == "k"], dd_par_pr$value_rec[dd_par_pr$parameter == "beta"])
 
@@ -266,30 +267,77 @@ k_values_rec <- dd_par_pr$value_rec[dd_par_pr$parameter == "k"]
 pr_cordat <- data.frame(
   beta_values = beta_values,
   beta_values_rec = beta_values_rec,
-  k_values = k_values,
-  k_values_rec = k_values_rec
+  k_values = -log(k_values),
+  k_values_rec = -log(k_values_rec)
 )
 
 # calculating the correlation matrix
 cormat <- stats::cor(pr_cordat, use = "complete.obs")
-colnames(cormat) <- c("β", "β(r)", "k", "k(r)")
-rownames(cormat) <- c("β", "β(r)", "k", "k(r)")
+colnames(cormat) <- c("β", "β(r)", "-log(k)", "-log(k(r))")
+rownames(cormat) <- c("β", "β(r)", "-log(k)", "-log(k(r))")
+cormat_subset <- cormat[c("β", "-log(k)"), c("β(r)", "-log(k(r))")]
 
-# create correlation matrix
+# 3. Clean up names (remove parentheses if preferred)
+colnames(cormat_subset) <- c("β", "logk")  # Recovered
+rownames(cormat_subset) <- c("β", "logk")  # Simulated
+
 pr_corplot <- ggcorrplot::ggcorrplot(
-  cormat,
+  cormat_subset,
+  method = "square",
+  type = "full",
   lab = TRUE,
-  hc.order = TRUE, outline.color = "white", tl.cex = 30,
-  lab_size = 9, show.legend = FALSE, colors = c("#feca8d", "#fcfdbf", "#6ece58")
-)
+  digits = 3,
+  hc.order = FALSE,  # Critical to preserve manual ordering
+  outline.color = "white",
+  tl.cex = 12,
+  lab_size = 4,
+  show.legend = FALSE,
+  colors = c("#feca8d", "#fcfdbf", "#6ece58"),
+  tl.srt = 0
+  ) +
+  ggplot2::labs(x = 'Simulated', y = 'Recovered') +
+  ggplot2::theme(
+    axis.title.x = element_text(angle = 0, vjust = -2, face = "bold", colour = "#2E2E2E", size = 12),
+    axis.title.y = element_text(angle = 90, vjust = 2, face = "bold", colour = "#2E2E2E", size = 12)
+  ) +
+  theme(axis.text.x  = element_text(size = 12, angle = 0, vjust = 1, hjust = 1,
+                                 margin = margin(3,0,0,0)),
+        axis.text.y = element_text(size = 12, margin = margin(0,-3,0,0)),
+        panel.grid.major = element_blank())
 
-ggplot2::ggsave(prb_corplot,
+
+
+
+pr_corplot <- ggcorrplot::ggcorrplot(
+  cormat_subset,
+  method = "square",
+  type = "full",
+  lab = TRUE,
+  digits = 3,
+  hc.order = FALSE,
+  outline.color = "white",
+  tl.cex = 12,
+  lab_size = 4,
+  show.legend = FALSE,
+  colors = c("#feca8d", "#fcfdbf", "#6ece58"),
+  tl.srt = 0
+) +
+  labs(x = 'Simulated', y = 'Recovered') +
+  theme(
+    axis.title.x = element_text(angle = 0, vjust = -1, face = "bold", colour = "#2E2E2E", size = 12),
+    axis.title.y = element_text(angle = 90, vjust = 1, face = "bold", colour = "#2E2E2E", size = 12),
+    axis.text.x = element_text(size = 12, angle = 0, margin = margin(t = -7)),
+    axis.text.y = element_text(size = 12, margin = margin(r = -7)),
+    panel.grid.major = element_blank()
+  )
+
+ggplot2::ggsave(pr_corplot,
   path = here::here("output", "parameter_recovery", "images"),
   filename = "parameter_recovery.png", dpi = 1200, device = "png"
 )
 
 # examine spearman rank order correlations between simulated and recovered parameters, both log and not log transformed
-cor(dd_par_pr$value[dd_par_pr$parameter == "k"], dd_par_pr$value_rec[dd_par_pr$parameter == "k"], method = "spearman")
+print(cor.test(dd_par_pr$value[dd_par_pr$parameter == "k"], dd_par_pr$value_rec[dd_par_pr$parameter == "k"], method = "spearman"), digits = 8)
 cor(dd_par_pr$value[dd_par_pr$parameter == "beta"], dd_par_pr$value_rec[dd_par_pr$parameter == "beta"], method = "spearman")
 cor(dd_par_pr$value[dd_par_pr$parameter == "k"], dd_par_pr$value_rec[dd_par_pr$parameter == "beta"], method = "spearman")
 cor(dd_par_pr$value[dd_par_pr$parameter == "beta"], dd_par_pr$value_rec[dd_par_pr$parameter == "k"], method = "spearman")
@@ -299,44 +347,76 @@ stats::cor(log(dd_par_pr$value[dd_par_pr$parameter == "k"]), -log(dd_par_pr$valu
   method = "spearman"
 )
 
-#### Visualse correlation k and log(k) --------------------------------------------------------------------------------------
-
-prec <- dd_par_pr %>%
-  ggplot(., aes(x = value, y = value_rec, colour = rec_precision)) +
-  geom_point(shape = 16) +
-  geom_smooth(method = "lm", colour = "#2E2E2E", fill = "#A2AFB5", fullrange = TRUE, na.rm = TRUE) +
-  plot_theme_legend +
-  aspect_ratio_square +
-  scale_x_continuous(limits = c(0, 1), breaks = seq(0, 1, by = .1)) +
-  scale_y_continuous(limits = c(0, 1), breaks = seq(0, 1, by = .1)) +
-  annotate(x = -Inf, xend = -Inf, y = 0, yend = 1, colour = "#2E2E2E", lwd = 0.75, geom = "segment") +
-  annotate(x = 0, xend = 1, y = -Inf, yend = -Inf, colour = "#2E2E2E", lwd = 0.75, geom = "segment") +
-  stat_poly_eq(method = "lm", label.x = .95, label.y = .95, use_label(c("eq"))) +
-  labs(x = "Simualted value (k)", y = "Recovered value (k)", colour = "Imprecision") +
-  scale_colour_viridis(alpha = 1)
-
-# save plot
-ggsave(prec,
-  path = here::here("output", "parameter_recovery", "images"),
-  filename = "parameter_recovery_k.png", dpi = 1200, device = "png"
-)
+#### Visualse correlation log(k) --------------------------------------------------------------------------------------------
 
 prec_logk <- dd_par_pr %>%
-  ggplot(., aes(x = -log(value), y = -log(value_rec), colour = rec_precision)) +
-  geom_point(shape = 16) +
+  dplyr::filter(parameter == "k") %>%
+  ggplot(., aes(x = -log(value), y = -log(value_rec), colour = abs(-log(value) - (-log(value_rec))))) +
+  geom_point(shape = 16, size = 3 ,alpha = .50) +
   geom_smooth(method = "lm", colour = "#2E2E2E", fill = "#A2AFB5", fullrange = TRUE, na.rm = TRUE) +
   plot_theme_legend +
   aspect_ratio_square +
-  scale_x_continuous(limits = c(0, 10), breaks = seq(0, 10, by = 1)) +
-  scale_y_continuous(limits = c(0, 10), breaks = seq(0, 10, by = 1)) +
+  scale_x_continuous(limits = c(0, 10), breaks = seq(0, 10, by = 2)) +
+  scale_y_continuous(limits = c(0, 10), breaks = seq(0, 10, by = 2)) +
   annotate(x = -Inf, xend = -Inf, y = 0, yend = 10, colour = "#2E2E2E", lwd = 0.75, geom = "segment") +
   annotate(x = 0, xend = 10, y = -Inf, yend = -Inf, colour = "#2E2E2E", lwd = 0.75, geom = "segment") +
-  stat_poly_eq(method = "lm", label.x = .95, label.y = .95, use_label(c("eq"))) +
-  labs(x = "Simualted value (logk)", y = "Recovered value (logk)", colour = "Imprecision") +
-  scale_colour_viridis(alpha = 1)
+  # stat_poly_eq(method = "lm", label.x = .95, label.y = .95, use_label(c("eq"))) +
+  labs(x = "Simualted (logk)", y = "Recovered (logk)", colour = "Residual", ) +
+  theme(axis.title.x = element_text(face = "bold", size = 12),  # Bold x-axis title
+         axis.title.y = element_text(face = "bold", size = 12, vjust = -1),  # Bold y-axis title
+         ) +
+  theme(plot.margin = unit(c(.25,.25,.25,.25), "cm")) +
+  scale_colour_viridis() +
+  theme(axis.text.x  = element_text(size = 12, angle = 0,
+                                    margin = margin(2,0,0,0)),
+        axis.text.y = element_text(size = 12, margin = margin(0,0,2,0)),
+        panel.grid.major = element_blank())
+
+prec_legend <- ggpubr::get_legend(prec_logk)
+as_ggplot(prec_legend)
+
+prec_logk_nolegend <- prec_logk + theme(legend.position = "none")
 
 # save plot
 ggsave(prec_logk,
   path = here::here("output", "parameter_recovery", "images"),
   filename = "parameter_recovery_logk.png", dpi = 1200, device = "png"
 )
+
+#### Combined plots for publication -----------------------------------------------------------------------------------------
+
+pr_corplot2 <- pr_corplot +
+  theme(
+    text = element_text(size = 12),
+    plot.margin = margin(t = 5, r = 2, b = 5, l = 10)  # match margins
+  )
+
+prec_logk_nolegend2 <- prec_logk_nolegend +
+  theme(
+    text = element_text(size = 12),
+    plot.margin = margin(t = 5, r = 2, b = 5, l = 10)  # match margins
+  )
+
+# arrange parameter recovery plots on a single output
+parameter_recovery_plots <- ggarrange(
+  pr_corplot2,
+  prec_logk_nolegend2,
+  prec_legend,
+  labels = c("A", "B", ""),
+  ncol = 3,
+  widths = c(1, 1, 0.3),   # third column is narrower for legend
+  align = "v",             # align vertically (including axis titles)
+  common.legend = FALSE    # no shared legend
+)
+
+ggsave(
+  plot = parameter_recovery_plots,
+  filename = "parameter_recovery.png",
+  path = here::here("output", "parameter_recovery", "images"),
+  width = 10,       # Increase width (inches)
+  height = 5,       # Increase height (inches)
+  dpi = 600,        # Lower DPI if file size is too large
+  device = "png"
+)
+
+
