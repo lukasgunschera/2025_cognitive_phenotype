@@ -841,36 +841,6 @@ ggplot2::ggsave(lcid_sm_tot_den,
   filename = "sm_density.png", dpi = 1200, device = "png"
 )
 
-#### PLOT: Social media posting and scrolling -------------------------------------------------------------------------------
-
-plot_list <- list()
-
-# create a plot for each wave
-for (w in 5:7) {
-  p <- ddtvar_long %>%
-    filter(!is.na(sm_postandscroll), wave == w) %>%
-    ggplot() +
-    geom_histogram(aes(x = sm_postandscroll, fill = as.factor(sm_postandscroll)), binwidth = .5) +
-    plot_theme +
-    scale_y_continuous(limits = c(0, 110), breaks = seq(0, 110, 10)) +
-    scale_x_continuous(breaks = seq(0, 5, 1)) +
-    scale_fill_viridis_d(direction = 1) +
-    annotate(geom = "segment", x = 0, xend = 5, y = -Inf, yend = -Inf, colour = "#2E2E2E", lwd = 0.5) +
-    annotate(geom = "segment", x = -Inf, xend = -Inf, y = 0, yend = 110) +
-    ggtitle(paste("Wave", w)) +
-    theme(title = element_text(size = 9))
-
-  plot_list[[as.character(w)]] <- p
-}
-
-# arrange the plots using ggarrange
-final_plot <- ggpubr::ggarrange(plotlist = plot_list, ncol = length(plot_list), common.legend = FALSE, legend = "none")
-
-ggplot2::ggsave(final_plot,
-  path = here::here("output", "images", "descriptives"),
-  filename = "sm_postscroll_hist.png", dpi = 1200, device = "png"
-)
-
 #### PLOT: Social media post and scroll across age --------------------------------------------------------------------------
 
 ddtvar_long %>%
