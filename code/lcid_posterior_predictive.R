@@ -83,8 +83,8 @@ ppcplot2 <- ppc02 %>%
   plot_theme +
   aspect_ratio_square +
   scale_colour_viridis_d(direction = 1) +
-  scale_x_continuous(breaks = seq(0, 1, .25), expand = c(0.05, 0.025)) +
-  scale_y_continuous(breaks = seq(0, 1, .25), expand = c(0.05, 0.05)) +
+  scale_x_continuous(breaks = seq(0, 1, .5), expand = c(0.05, 0.025)) +
+  scale_y_continuous(breaks = seq(0, 1, .5), expand = c(0.05, 0.05)) +
   labs(x = "Observed", y = "Predicted") +
   annotate(x = -Inf, xend = -Inf, y = 0, yend = 1, colour = "#2E2E2E", lwd = 0.75, geom = "segment") +
   annotate(x = 0, xend = 1, y = -Inf, yend = -Inf, colour = "#2E2E2E", lwd = 0.75, geom = "segment")
@@ -97,8 +97,8 @@ ppcplot3 <- ppc03 %>%
   plot_theme +
   aspect_ratio_square +
   scale_colour_viridis_d(direction = 1) +
-  scale_x_continuous(breaks = seq(0, 1, .25), expand = c(0.05, 0.025)) +
-  scale_y_continuous(breaks = seq(0, 1, .25), expand = c(0.05, 0.05)) +
+  scale_x_continuous(breaks = seq(0, 1, .5), expand = c(0.05, 0.025)) +
+  scale_y_continuous(breaks = seq(0, 1, .5), expand = c(0.05, 0.05)) +
   labs(x = "Observed", y = "Predicted") +
   annotate(x = -Inf, xend = -Inf, y = 0, yend = 1, colour = "#2E2E2E", lwd = 0.75, geom = "segment") +
   annotate(x = 0, xend = 1, y = -Inf, yend = -Inf, colour = "#2E2E2E", lwd = 0.75, geom = "segment")
@@ -111,8 +111,8 @@ ppcplot4 <- ppc04 %>%
   plot_theme +
   aspect_ratio_square +
   scale_colour_viridis_d(direction = 1) +
-  scale_x_continuous(breaks = seq(0, 1, .25), expand = c(0.05, 0.025)) +
-  scale_y_continuous(breaks = seq(0, 1, .25), expand = c(0.05, 0.05)) +
+  scale_x_continuous(breaks = seq(0, 1, .5), expand = c(0.05, 0.025)) +
+  scale_y_continuous(breaks = seq(0, 1, .5), expand = c(0.05, 0.05)) +
   labs(x = "Observed", y = "Predicted") +
   annotate(x = -Inf, xend = -Inf, y = 0, yend = 1, colour = "#2E2E2E", lwd = 0.75, geom = "segment") +
   annotate(x = 0, xend = 1, y = -Inf, yend = -Inf, colour = "#2E2E2E", lwd = 0.75, geom = "segment")
@@ -125,8 +125,8 @@ ppcplot5 <- ppc05 %>%
   plot_theme +
   aspect_ratio_square +
   scale_colour_viridis_d(direction = 1) +
-  scale_x_continuous(breaks = seq(0, 1, .25), expand = c(0.05, 0.025)) +
-  scale_y_continuous(breaks = seq(0, 1, .25), expand = c(0.05, 0.05)) +
+  scale_x_continuous(breaks = seq(0, 1, .5), expand = c(0.05, 0.025)) +
+  scale_y_continuous(breaks = seq(0, 1, .5), expand = c(0.05, 0.05)) +
   labs(x = "Observed", y = "Predicted") +
   annotate(x = -Inf, xend = -Inf, y = 0, yend = 1, colour = "#2E2E2E", lwd = 0.75, geom = "segment") +
   annotate(x = 0, xend = 1, y = -Inf, yend = -Inf, colour = "#2E2E2E", lwd = 0.75, geom = "segment")
@@ -139,14 +139,14 @@ ppcplot6 <- ppc06 %>%
   plot_theme +
   aspect_ratio_square +
   scale_colour_viridis_d(direction = 1) +
-  scale_x_continuous(breaks = seq(0, 1, .25), expand = c(0.05, 0.025)) +
-  scale_y_continuous(breaks = seq(0, 1, .25), expand = c(0.05, 0.05)) +
+  scale_x_continuous(breaks = seq(0, 1, .5), expand = c(0.05, 0.025)) +
+  scale_y_continuous(breaks = seq(0, 1, .5), expand = c(0.05, 0.05)) +
   labs(x = "Observed", y = "Predicted") +
   annotate(x = -Inf, xend = -Inf, y = 0, yend = 1, colour = "#2E2E2E", lwd = 0.75, geom = "segment") +
   annotate(x = 0, xend = 1, y = -Inf, yend = -Inf, colour = "#2E2E2E", lwd = 0.75, geom = "segment")
 
 ppcplot6 <- ppcplot6 +
-  theme(legend.position = "right") +
+  theme(legend.position = "bottom") +
   labs(colour = "Delay level") +
   ggtitle("Wave 6") +
   theme(plot.title = element_text(vjust = -2, size = 12))
@@ -180,7 +180,27 @@ layout <- c(
 combined_plot <- ppcplot2 + ppcplot3 + ppcplot4 + ppcplot5 + ppcplot6 + plot_spacer() +
   plot_layout(design = layout, guides = "collect")
 
-ggsave(combined_plot,
-  path = here::here("output", "images", "modelfit"),
-  filename = "ppc_corrplots.png", dpi = 1200, device = "png"
+# extract legend
+ppc_legend <- get_legend(ppcplot6)
+
+# arrange plots on a single output
+ppc_plots_all <- ggarrange(
+  ppcplot2, ppcplot3, ppcplot4, ppcplot5, ppcplot6,
+  labels = c("A", "B", "C", "D", "E"),
+  ncol = 3, nrow = 2,
+  align = "v",             # align vertically (including axis titles)
+  common.legend = TRUE,    #  shared legend
+  legend = "bottom",
+  legend.grob = ppc_legend
 )
+
+# save plot
+ggsave(ppc_plots_all,
+       path = here::here("output", "images", "modelfit"),
+       filename = "ppc_plots.png",
+       width = 10,       # increase width (inches)
+       height = 5,       # increase height (inches)
+       dpi = 600,        # lower DPI if file size is too large
+       device = "png"
+)
+

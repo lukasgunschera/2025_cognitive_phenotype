@@ -361,7 +361,7 @@ prec_logk <- dd_par_pr %>%
   annotate(x = -Inf, xend = -Inf, y = 0, yend = 10, colour = "#2E2E2E", lwd = 0.75, geom = "segment") +
   annotate(x = 0, xend = 10, y = -Inf, yend = -Inf, colour = "#2E2E2E", lwd = 0.75, geom = "segment") +
   # stat_poly_eq(method = "lm", label.x = .95, label.y = .95, use_label(c("eq"))) +
-  labs(x = "Simualted (logk)", y = "Recovered (logk)", colour = "Residual", ) +
+  labs(x = "Simulated (logk)", y = "Recovered (logk)", colour = "Residual", ) +
   theme(axis.title.x = element_text(face = "bold", size = 12),  # Bold x-axis title
          axis.title.y = element_text(face = "bold", size = 12, vjust = -1),  # Bold y-axis title
          ) +
