@@ -82,7 +82,7 @@ ppcplot2 <- ppc02 %>%
   geom_smooth(method = "lm", color = "#2E2E2E", fullrange = TRUE) +
   plot_theme +
   aspect_ratio_square +
-  scale_colour_viridis_d(direction = 1) +
+  scale_colour_viridis_d(begin = .1, end = .8, option = "C", direction = -1) +
   scale_x_continuous(breaks = seq(0, 1, .5), expand = c(0.05, 0.025)) +
   scale_y_continuous(breaks = seq(0, 1, .5), expand = c(0.05, 0.05)) +
   labs(x = "Observed", y = "Predicted") +
@@ -96,7 +96,7 @@ ppcplot3 <- ppc03 %>%
   geom_smooth(method = "lm", color = "#2E2E2E", fullrange = TRUE) +
   plot_theme +
   aspect_ratio_square +
-  scale_colour_viridis_d(direction = 1) +
+  scale_colour_viridis_d(begin = .1, end = .8, option = "C", direction = -1) +
   scale_x_continuous(breaks = seq(0, 1, .5), expand = c(0.05, 0.025)) +
   scale_y_continuous(breaks = seq(0, 1, .5), expand = c(0.05, 0.05)) +
   labs(x = "Observed", y = "Predicted") +
@@ -110,7 +110,7 @@ ppcplot4 <- ppc04 %>%
   geom_smooth(method = "lm", color = "#2E2E2E", fullrange = TRUE) +
   plot_theme +
   aspect_ratio_square +
-  scale_colour_viridis_d(direction = 1) +
+  scale_colour_viridis_d(begin = .1, end = .8, option = "C", direction = -1) +
   scale_x_continuous(breaks = seq(0, 1, .5), expand = c(0.05, 0.025)) +
   scale_y_continuous(breaks = seq(0, 1, .5), expand = c(0.05, 0.05)) +
   labs(x = "Observed", y = "Predicted") +
@@ -124,7 +124,7 @@ ppcplot5 <- ppc05 %>%
   geom_smooth(method = "lm", color = "#2E2E2E", fullrange = TRUE) +
   plot_theme +
   aspect_ratio_square +
-  scale_colour_viridis_d(direction = 1) +
+  scale_colour_viridis_d(begin = .1, end = .8, option = "C", direction = -1) +
   scale_x_continuous(breaks = seq(0, 1, .5), expand = c(0.05, 0.025)) +
   scale_y_continuous(breaks = seq(0, 1, .5), expand = c(0.05, 0.05)) +
   labs(x = "Observed", y = "Predicted") +
@@ -138,7 +138,7 @@ ppcplot6 <- ppc06 %>%
   geom_smooth(method = "lm", color = "#2E2E2E", fullrange = TRUE) +
   plot_theme +
   aspect_ratio_square +
-  scale_colour_viridis_d(direction = 1) +
+  scale_colour_viridis_d(begin = .1, end = .8, option = "C", direction = -1) +
   scale_x_continuous(breaks = seq(0, 1, .5), expand = c(0.05, 0.025)) +
   scale_y_continuous(breaks = seq(0, 1, .5), expand = c(0.05, 0.05)) +
   labs(x = "Observed", y = "Predicted") +
