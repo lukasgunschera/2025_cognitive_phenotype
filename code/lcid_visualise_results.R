@@ -37,6 +37,7 @@ library(magrittr)
 library(lmerTest)
 library(tidybayes)
 library(ggeffects)
+library(gridExtra)
 library(effectsize)
 library(ggcorrplot)
 library(colorspace)
@@ -843,159 +844,369 @@ ggplot2::ggsave(lcid_sm_tot_den,
 
 #### PLOT: Social media post and scroll across age --------------------------------------------------------------------------
 
-ddtvar_long %>%
+# set labels for likert responses
+likert_labels <- c("5" = ">4h",
+                   "4" = "3-4h",
+                   "3" = "2-3h",
+                   "2" = "1-2h",
+                   "1" = "0-1h",
+                   "0" = "0h")
+
+# set colour scheme for plot
+viridis_colors <- viridis::viridis(6, option = "C", begin = .1, end = .8, direction = -1)
+names(viridis_colors) <- likert_labels
+
+# create the main plot
+main_plot <- ddtvar_long %>%
   filter(!is.na(sm_postandscroll), !is.na(age)) %>%
-  mutate(age_bin = cut_width(age, width = 1, boundary = 0)) %>%
-  ggplot(aes(x = age_bin, y = sm_postandscroll, fill = age_bin)) +
-  geom_boxplot(alpha = 0.7, color = "black", outlier.size = 1) +
-  geom_jitter(aes(color = age_bin), width = 0.2, alpha = 0.5, size = 1) +
+  mutate(
+    age_group = factor(floor(age)),
+    sm_postandscroll = fct_rev(factor(sm_postandscroll,
+                                      levels = c(0, 1, 2, 3, 4, 5),
+                                      labels = names(viridis_colors)
+    ))
+  ) %>%
+  count(age_group, sm_postandscroll) %>%
+  group_by(age_group) %>%
+  mutate(
+    prop = n / sum(n),
+    # Only create labels for proportions >= 0.05 (5%)
+    label = ifelse(prop >= 0.05, scales::percent(prop, accuracy = 1), "")
+  ) %>%
+  arrange(age_group, desc(sm_postandscroll)) %>%
+  mutate(
+    # Calculate cumulative proportion for position
+    cumulative = cumsum(prop) - prop,
+    # Position text at the beginning of each bar with a small buffer
+    position = cumulative + 0.01  # Small buffer from left edge
+  ) %>%
+  ungroup() %>%
+  ggplot(aes(x = age_group, y = prop, fill = sm_postandscroll)) +
+  geom_col(width = 0.8, color = "white", linewidth = 0) +
+  geom_text(aes(y = position, label = label),
+            color = "white",
+            family = "Arial",  # Set font to Arial
+            size = 10/.pt,     # Convert 10pt to ggplot2 size units
+            hjust = 0,         # Left alignment
+            vjust = 0.5) +     # Vertically centered
+  coord_flip() +
+  scale_fill_manual(values = viridis_colors) +
+  scale_y_continuous(labels = label_percent(), expand = c(0, 0)) +
+  labs(
+    x = "Age (years)",
+    y = "Percentage of Responses"
+  ) +
+  theme_minimal() +
   plot_theme +
-  scale_y_discrete(breaks = seq(0, 5, by = 1)) +
-  scale_fill_viridis_d() +
-  scale_colour_viridis_d() +
-  geom_smooth(aes(color = age), method = "lm", se = FALSE) +
-  labs(x = "Age", y = "Time spent posting and scrolling") +
-  theme(legend.position = "none") +
-  annotate(x = -Inf, xend = -Inf, y = 0, yend = 5, colour = "#2E2E2E", lwd = 0.5, geom = "segment") +
-  annotate(x = 1, xend = 6, y = -Inf, yend = -Inf, colour = "#2E2E2E", lwd = 0.5, geom = "segment")
+  theme(
+    legend.position = "none",
+    panel.grid.major.y = element_blank(),
+    plot.margin = margin(0, 0.75, 0.25, 0.25, "cm"),
+    axis.title = element_text(face = "bold"),
+    axis.ticks.y = element_blank(),
+    axis.ticks.length.y = unit(0, "pt"),
+    text = element_text(family = "Arial")  # Set global font to Arial
+  ) +
+  annotate(x = -Inf, xend = -Inf, y = 0, yend = 1, colour = "#2E2E2E", lwd = 0.5, geom = "segment")
+
+# create colored text legend using same viridis colors
+legend_plot <- ggplot() +
+  annotate("text",
+           x = seq(0.5, 6.5, length.out = 6),
+           y = 1,
+           label = rev(names(viridis_colors)),
+           color = viridis_colors,
+           family = "Arial",         # Added Arial font family
+           size = 12/.pt,            # Convert 12pt to ggplot2 size units
+           fontface = "bold") +
+  xlim(0.5, 6.5) +
+  theme_void() +
+  theme(plot.margin = margin(0, 0.75, 0, 1, "cm"))
+
+# Combine plots with proper spacing
+sm_stacked_bar <- grid.arrange(
+  legend_plot,
+  main_plot,
+  heights = c(0.05, .95),
+  ncol = 1
+)
+
+ggplot2::ggsave(sm_stacked_bar,
+                path = here::here("output", "images"),
+                filename = "sm_stacked_bars.png",  width = 8, height = 5, dpi = 600, device = "png"
+)
+
 
 #### PLOT: Social media post and scroll across waves ------------------------------------------------------------------------
 
-lcid_sm_postscroll_den <- ddtvar_long %>%
+# create the main plot
+main_plot_wave <- ddtvar_long %>%
+  filter(!is.na(sm_postandscroll), !is.na(wave)) %>%
+  mutate(
+    wave = factor(wave),
+    sm_postandscroll = fct_rev(factor(sm_postandscroll,
+                                      levels = c(0, 1, 2, 3, 4, 5),
+                                      labels = names(viridis_colors)
+    ))
+  ) %>%
+  count(wave, sm_postandscroll) %>%
   group_by(wave) %>%
-  filter(!is.na(sm_postandscroll)) %>%
-  ggplot(aes(x = as.factor(wave), y = sm_postandscroll)) +
-  geom_boxplot(aes(color = wave, fill = wave), width = .25, outlier.shape = NA, alpha = .70) +
-  geom_point(aes(color = wave),
-    alpha = .5, shape = 21, stroke = .4, size = 1.5,
-    position = position_jitter(seed = 1, width = .12)
+  mutate(
+    prop = n / sum(n),
+    # Only create labels for proportions >= 0.05 (5%)
+    label = ifelse(prop >= 0.05, scales::percent(prop, accuracy = 1), "")
+  ) %>%
+  arrange(wave, desc(sm_postandscroll)) %>%
+  mutate(
+    # Calculate cumulative proportion for position
+    cumulative = cumsum(prop) - prop,
+    # Position text at the beginning of each bar with a small buffer
+    position = cumulative + 0.01  # Small buffer from left edge
+  ) %>%
+  ungroup() %>%
+  ggplot(aes(x = wave, y = prop, fill = sm_postandscroll)) +
+  geom_col(width = 0.8, color = "white", linewidth = 0) +
+  geom_text(aes(y = position, label = label),
+            color = "white",
+            family = "Arial",  # Set font to Arial
+            size = 10/.pt,     # Convert 10pt to ggplot2 size units
+            hjust = 0,         # Left alignment
+            vjust = 0.5) +     # Vertically centered
+  coord_flip() +
+  scale_fill_manual(values = viridis_colors) +
+  scale_y_continuous(labels = label_percent(), expand = c(0, 0)) +
+  labs(
+    x = "Wave",
+    y = "Percentage of Responses"
   ) +
-  stat_summary(
-    geom = "text", fun.data = add_sample,
-    aes(
-      label = paste("n =", ..label..), y = stage(sm_total, after_stat = 3.5), x = (wave - 4) - .1,
-      color = wave, color = after_scale(darken(color, .1, space = "HLS"))
-    ),
-    family = "Arial", size = 4, hjust = 0
-  ) +
-  coord_flip(xlim = c(1.2, NA), clip = "off") +
-  scale_fill_viridis(end = .7) +
-  scale_colour_viridis(end = .7) +
-  labs(x = "Wave", y = "Time spent posting and scrolling") +
+  theme_minimal() +
   plot_theme +
-  aspect_ratio_balanced +
-  scale_y_continuous(limits = c(0, 5), breaks = 0:5, expand = c(0.05, 0)) +
-  annotate(x = -Inf, xend = -Inf, y = 0, yend = 5, colour = "#2E2E2E", lwd = 0.5, geom = "segment") +
-  annotate(x = 1, xend = 3, y = -Inf, yend = -Inf, colour = "#2E2E2E", lwd = 0.5, geom = "segment") +
-  theme(axis.title.y = element_text(hjust = .47))
+  theme(
+    legend.position = "none",
+    panel.grid.major.y = element_blank(),
+    plot.margin = margin(0, 0.75, 0.25, 0.25, "cm"),
+    axis.title = element_text(face = "bold"),
+    axis.ticks.y = element_blank(),
+    axis.ticks.length.y = unit(0, "pt"),
+    text = element_text(family = "Arial")  # Set global font to Arial
+  ) +
+  annotate(x = -Inf, xend = -Inf, y = 0, yend = 1, colour = "#2E2E2E", lwd = 0.5, geom = "segment")
 
-ggplot2::ggsave(lcid_sm_postscroll_den,
-  path = here::here("output", "images"),
-  filename = "sm_postscroll_box.png", dpi = 1200, device = "png"
+# Combine plots with proper spacing
+sm_stacked_bar_wave <- grid.arrange(
+  legend_plot,
+  main_plot_wave,
+  heights = c(0.05, .95),
+  ncol = 1
+)
+
+ggplot2::ggsave(sm_stacked_bar_wave,
+                path = here::here("output", "images"),
+                filename = "sm_stacked_bars_wave.png",  width = 8, height = 5, dpi = 600, device = "png"
 )
 
 #### PLOT: Social media video watching across waves -------------------------------------------------------------------------
 
-lcid_sm_video_box <- ddtvar_long %>%
+# create the main plot
+sm_vid <- ddtvar_long %>%
+  filter(!is.na(sm_video), !is.na(wave)) %>%
+  mutate(
+    wave = factor(wave),
+    sm_video = fct_rev(factor(sm_video,
+                                      levels = c(0, 1, 2, 3, 4, 5),
+                                      labels = names(viridis_colors)
+    ))
+  ) %>%
+  count(wave, sm_video) %>%
   group_by(wave) %>%
-  filter(!is.na(sm_video)) %>%
-  ggplot(aes(x = as.factor(wave), y = sm_video)) +
-  geom_boxplot(aes(color = wave, fill = wave), width = .25, outlier.shape = NA, alpha = .70) +
-  geom_point(aes(color = wave),
-    alpha = .5, shape = 21, stroke = .4, size = 1.5,
-    position = position_jitter(seed = 1, width = .12)
+  mutate(
+    prop = n / sum(n),
+    # Only create labels for proportions >= 0.05 (5%)
+    label = ifelse(prop >= 0.05, scales::percent(prop, accuracy = 1), "")
+  ) %>%
+  arrange(wave, desc(sm_video)) %>%
+  mutate(
+    # Calculate cumulative proportion for position
+    cumulative = cumsum(prop) - prop,
+    # Position text at the beginning of each bar with a small buffer
+    position = cumulative + 0.01  # Small buffer from left edge
+  ) %>%
+  ungroup() %>%
+  ggplot(aes(x = wave, y = prop, fill = sm_video)) +
+  geom_col(width = 0.8, color = "white", linewidth = 0) +
+  geom_text(aes(y = position, label = label),
+            color = "white",
+            family = "Arial",  # Set font to Arial
+            size = 10/.pt,     # Convert 10pt to ggplot2 size units
+            hjust = 0,         # Left alignment
+            vjust = 0.5) +     # Vertically centered
+  coord_flip() +
+  scale_fill_manual(values = viridis_colors) +
+  scale_y_continuous(labels = label_percent(), expand = c(0, 0)) +
+  labs(
+    x = "Wave",
+    y = "Percentage of Responses"
   ) +
-  stat_summary(
-    geom = "text", fun.data = add_sample,
-    aes(
-      label = paste("n =", ..label..), y = stage(sm_total, after_stat = 3.5), x = (wave - 4) - .1,
-      color = wave, color = after_scale(darken(color, .1, space = "HLS"))
-    ),
-    family = "Arial", size = 4, hjust = 0
-  ) +
-  coord_flip(xlim = c(1.2, NA), clip = "off") +
-  scale_fill_viridis(end = .7) +
-  scale_colour_viridis(end = .7) +
-  labs(x = "Wave", y = "Time spent posting and scrolling") +
+  theme_minimal() +
   plot_theme +
-  aspect_ratio_balanced +
-  scale_y_continuous(limits = c(0, 5), breaks = 0:5, expand = c(0.05, 0)) +
-  annotate(x = -Inf, xend = -Inf, y = 0, yend = 5, colour = "#2E2E2E", lwd = 0.5, geom = "segment") +
-  annotate(x = 1, xend = 3, y = -Inf, yend = -Inf, colour = "#2E2E2E", lwd = 0.5, geom = "segment") +
-  theme(axis.title.y = element_text(hjust = .47))
+  theme(
+    legend.position = "none",
+    panel.grid.major.y = element_blank(),
+    plot.margin = margin(0, 0.75, 0.25, 0.25, "cm"),
+    axis.title = element_text(face = "bold"),
+    axis.ticks.y = element_blank(),
+    axis.ticks.length.y = unit(0, "pt"),
+    text = element_text(family = "Arial")  # Set global font to Arial
+  ) +
+  annotate(x = -Inf, xend = -Inf, y = 0, yend = 1, colour = "#2E2E2E", lwd = 0.5, geom = "segment")
 
-ggplot2::ggsave(lcid_sm_video_box,
-  path = here::here("output", "images", "descriptives"),
-  filename = "sm_video_box.png", dpi = 1200, device = "png"
+# Combine plots with proper spacing
+sm_vid_stacked <- grid.arrange(
+  legend_plot,
+  sm_vid,
+  heights = c(0.05, .95),
+  ncol = 1
+)
+
+ggplot2::ggsave(sm_vid_stacked,
+                path = here::here("output", "images", "descriptives"),
+                filename = "sm_video_stacked.png",  width = 8, height = 5, dpi = 600, device = "png"
 )
 
 #### PLOT: Social media messaging across waves ------------------------------------------------------------------------------
 
-lcid_sm_message_den <- ddtvar_long %>%
+# create the main plot
+sm_vid <- ddtvar_long %>%
+  filter(!is.na(sm_messaging), !is.na(wave)) %>%
+  mutate(
+    wave = factor(wave),
+    sm_messaging = fct_rev(factor(sm_messaging,
+                              levels = c(0, 1, 2, 3, 4, 5),
+                              labels = names(viridis_colors)
+    ))
+  ) %>%
+  count(wave, sm_messaging) %>%
   group_by(wave) %>%
-  filter(!is.na(sm_messaging)) %>%
-  ggplot(aes(x = as.factor(wave), y = sm_messaging)) +
-  geom_boxplot(aes(color = wave, fill = wave), width = .25, outlier.shape = NA, alpha = .70) +
-  geom_point(aes(color = wave),
-    alpha = .5, shape = 21, stroke = .4, size = 1.5,
-    position = position_jitter(seed = 1, width = .12)
+  mutate(
+    prop = n / sum(n),
+    # Only create labels for proportions >= 0.05 (5%)
+    label = ifelse(prop >= 0.05, scales::percent(prop, accuracy = 1), "")
+  ) %>%
+  arrange(wave, desc(sm_messaging)) %>%
+  mutate(
+    # Calculate cumulative proportion for position
+    cumulative = cumsum(prop) - prop,
+    # Position text at the beginning of each bar with a small buffer
+    position = cumulative + 0.01  # Small buffer from left edge
+  ) %>%
+  ungroup() %>%
+  ggplot(aes(x = wave, y = prop, fill = sm_messaging)) +
+  geom_col(width = 0.8, color = "white", linewidth = 0) +
+  geom_text(aes(y = position, label = label),
+            color = "white",
+            family = "Arial",  # Set font to Arial
+            size = 10/.pt,     # Convert 10pt to ggplot2 size units
+            hjust = 0,         # Left alignment
+            vjust = 0.5) +     # Vertically centered
+  coord_flip() +
+  scale_fill_manual(values = viridis_colors) +
+  scale_y_continuous(labels = label_percent(), expand = c(0, 0)) +
+  labs(
+    x = "Wave",
+    y = "Percentage of Responses"
   ) +
-  stat_summary(
-    geom = "text", fun.data = add_sample,
-    aes(
-      label = paste("n =", ..label..), y = stage(sm_total, after_stat = 3.5), x = (wave - 4) - .1,
-      color = wave, color = after_scale(darken(color, .1, space = "HLS"))
-    ),
-    family = "Arial", size = 4, hjust = 0
-  ) +
-  coord_flip(xlim = c(1.2, NA), clip = "off") +
-  scale_fill_viridis(end = .7) +
-  scale_colour_viridis(end = .7) +
-  labs(x = "Wave", y = "Time spent messaging") +
+  theme_minimal() +
   plot_theme +
-  aspect_ratio_balanced +
-  scale_y_continuous(limits = c(0, 5), breaks = 0:5, expand = c(0.05, 0)) +
-  annotate(x = -Inf, xend = -Inf, y = 0, yend = 5, colour = "#2E2E2E", lwd = 0.5, geom = "segment") +
-  annotate(x = 1, xend = 3, y = -Inf, yend = -Inf, colour = "#2E2E2E", lwd = 0.5, geom = "segment") +
-  theme(axis.title.y = element_text(hjust = .47))
+  theme(
+    legend.position = "none",
+    panel.grid.major.y = element_blank(),
+    plot.margin = margin(0, 0.75, 0.25, 0.25, "cm"),
+    axis.title = element_text(face = "bold"),
+    axis.ticks.y = element_blank(),
+    axis.ticks.length.y = unit(0, "pt"),
+    text = element_text(family = "Arial")  # Set global font to Arial
+  ) +
+  annotate(x = -Inf, xend = -Inf, y = 0, yend = 1, colour = "#2E2E2E", lwd = 0.5, geom = "segment")
 
-ggplot2::ggsave(lcid_sm_message_den,
-  path = here::here("output", "images", "descriptives"),
-  filename = "sm_message_box.png", dpi = 1200, device = "png"
+# Combine plots with proper spacing
+sm_messaging_stacked <- grid.arrange(
+  legend_plot,
+  sm_vid,
+  heights = c(0.05, .95),
+  ncol = 1
+)
+
+ggplot2::ggsave(sm_messaging_stacked,
+                path = here::here("output", "images", "descriptives"),
+                filename = "sm_messaging_stacked.png",  width = 8, height = 5, dpi = 600, device = "png"
 )
 
 #### PLOT: Social media videocalling across waves ---------------------------------------------------------------------------
 
-lcid_sm_videocall_den <- ddtvar_long %>%
+# create the main plot
+sm_vid <- ddtvar_long %>%
+  filter(!is.na(sm_videocall), !is.na(wave)) %>%
+  mutate(
+    wave = factor(wave),
+    sm_videocall = fct_rev(factor(sm_videocall,
+                                  levels = c(0, 1, 2, 3, 4, 5),
+                                  labels = names(viridis_colors)
+    ))
+  ) %>%
+  count(wave, sm_videocall) %>%
   group_by(wave) %>%
-  filter(!is.na(sm_videocall)) %>%
-  ggplot(aes(x = as.factor(wave), y = sm_videocall)) +
-  geom_boxplot(aes(color = wave, fill = wave), width = .25, outlier.shape = NA, alpha = .70) +
-  geom_point(aes(color = wave),
-    alpha = .5, shape = 16, stroke = .4, size = 1.5, position = position_jitter(seed = 1, width = .12)
+  mutate(
+    prop = n / sum(n),
+    # Only create labels for proportions >= 0.05 (5%)
+    label = ifelse(prop >= 0.05, scales::percent(prop, accuracy = 1), "")
+  ) %>%
+  arrange(wave, desc(sm_videocall)) %>%
+  mutate(
+    # Calculate cumulative proportion for position
+    cumulative = cumsum(prop) - prop,
+    # Position text at the beginning of each bar with a small buffer
+    position = cumulative + 0.01  # Small buffer from left edge
+  ) %>%
+  ungroup() %>%
+  ggplot(aes(x = wave, y = prop, fill = sm_videocall)) +
+  geom_col(width = 0.8, color = "white", linewidth = 0) +
+  geom_text(aes(y = position, label = label),
+            color = "white",
+            family = "Arial",  # Set font to Arial
+            size = 10/.pt,     # Convert 10pt to ggplot2 size units
+            hjust = 0,         # Left alignment
+            vjust = 0.5) +     # Vertically centered
+  coord_flip() +
+  scale_fill_manual(values = viridis_colors) +
+  scale_y_continuous(labels = label_percent(), expand = c(0, 0)) +
+  labs(
+    x = "Wave",
+    y = "Percentage of Responses"
   ) +
-  stat_summary(
-    geom = "text", fun.data = add_sample,
-    aes(
-      label = paste("n =", ..label..), y = stage(sm_total, after_stat = 3.5), x = (wave - 4) - .1,
-      color = wave, color = after_scale(darken(color, .1, space = "HLS"))
-    ),
-    family = "Arial", size = 4, hjust = 0
-  ) +
-  coord_flip(xlim = c(1.2, NA), clip = "off") +
-  scale_fill_viridis(end = .7) +
-  scale_colour_viridis(end = .7) +
-  labs(x = "Wave", y = "Time spent video calling") +
+  theme_minimal() +
   plot_theme +
-  aspect_ratio_balanced +
-  scale_y_continuous(limits = c(0, 5), breaks = 0:5, expand = c(0.05, 0)) +
-  annotate(x = -Inf, xend = -Inf, y = 0, yend = 5, colour = "#2E2E2E", lwd = 0.5, geom = "segment") +
-  annotate(x = 1, xend = 3, y = -Inf, yend = -Inf, colour = "#2E2E2E", lwd = 0.5, geom = "segment") +
-  theme(axis.title.y = element_text(hjust = .47))
+  theme(
+    legend.position = "none",
+    panel.grid.major.y = element_blank(),
+    plot.margin = margin(0, 0.75, 0.25, 0.25, "cm"),
+    axis.title = element_text(face = "bold"),
+    axis.ticks.y = element_blank(),
+    axis.ticks.length.y = unit(0, "pt"),
+    text = element_text(family = "Arial")  # Set global font to Arial
+  ) +
+  annotate(x = -Inf, xend = -Inf, y = 0, yend = 1, colour = "#2E2E2E", lwd = 0.5, geom = "segment")
 
-ggplot2::ggsave(lcid_sm_videocall_den,
-  path = here::here("output", "images", "descriptives"),
-  filename = "sm_videocall_box.png", dpi = 1200, device = "png"
+# Combine plots with proper spacing
+sm_videocall_stacked <- grid.arrange(
+  legend_plot,
+  sm_vid,
+  heights = c(0.05, .95),
+  ncol = 1
+)
+
+ggplot2::ggsave(sm_videocall_stacked,
+                path = here::here("output", "images", "descriptives"),
+                filename = "sm_videocall_stacked.png",  width = 8, height = 5, dpi = 600, device = "png"
 )
 
 ### PLOTS: Compulsive Internet Use --------------------------------------------------------------------------------------
@@ -1171,9 +1382,11 @@ ggplot2::ggsave(sm_cius_corr,
   filename = "sm_cius_corr.png", dpi = 1200, device = "png"
 )
 
-### PLOTS: Wellbeing Descriptives -------------------------------------------------------------------------------------------
+## WELLBEING ================================================================================================================
 
-#### PLOT: BISBAS total score across waves ----------------------------------------------------------------------------------
+### BISBAS Scale ------------------------------------------------------------------------------------------------------------
+
+#### BISBAS Total score -----------------------------------------------------------------------------------------------------
 
 lcid_bisbas_den <- ddtvar_long %>%
   group_by(wave) %>%
@@ -1183,15 +1396,15 @@ lcid_bisbas_den <- ddtvar_long %>%
     aes(color = wave, fill = after_scale(lighten(color, 0))),
     adjust = 1, width = .75, .width = 0, justification = -.25, point_color = NA
   ) +
+  geom_point(aes(color = wave),
+             alpha = .5, shape = 16, stroke = .4, size = 2, position = position_jitter(seed = 1, width = .12)
+  ) +
   geom_boxplot(
     aes(
       color = wave, color = after_scale(darken(color, .8, space = "HLS")),
-      fill = after_scale(desaturate(lighten(color, .3), .4))
+      fill = after_scale(desaturate(lighten(color, .3), .4)), alpha = .7
     ),
     width = .25, outlier.shape = NA
-  ) +
-  geom_point(aes(color = wave),
-    alpha = .5, shape = 21, stroke = .4, size = 1.5, position = position_jitter(seed = 1, width = .12)
   ) +
   stat_summary(
     geom = "text", fun.data = add_sample,
@@ -1202,22 +1415,26 @@ lcid_bisbas_den <- ddtvar_long %>%
     family = "Arial", size = 4, hjust = 0
   ) +
   coord_flip(xlim = c(1.2, NA), clip = "off") +
-  scale_fill_viridis_c(end = .7) +
-  scale_colour_viridis_c(end = .7) +
-  labs(x = "Wave", y = "BIS/BAS Total Score") +
+  scale_fill_viridis_c(begin = .1, end = .8, option = "C", direction = -1) +
+  scale_colour_viridis_c(begin = .1, end = .8, option = "C", direction = -1) +
+  labs(x = "Wave", y = "BISBAS score") +
   plot_theme +
   aspect_ratio_balanced +
   scale_y_continuous(limits = c(15, 85), breaks = seq(15, 85, by = 10), expand = c(.05, 0)) +
   annotate(x = -Inf, xend = -Inf, y = 15, yend = 85, colour = "#2E2E2E", lwd = 0.5, geom = "segment") +
   annotate(x = 1, xend = 3, y = -Inf, yend = -Inf, colour = "#2E2E2E", lwd = 0.5, geom = "segment") +
-  theme(axis.title.y = element_text(hjust = .41))
+  theme(
+    axis.title.y = element_text(hjust = .41),
+    text = element_text(size = 12 / .pt),
+    axis.title = element_text(size = 12, face = "bold")
+  )
 
 ggplot2::ggsave(lcid_bisbas_den,
-  path = here::here("output", "images", "descriptives"),
-  filename = "bisbas_dens.png", dpi = 1200, device = "png"
+                path = here::here("output", "images", "descriptives"),
+                filename = "bisbas_dens.png", dpi = 600, device = "png"
 )
 
-#### PLOT: BIS subscale scores across waves ---------------------------------------------------------------------------------
+#### BISBAS BIS Subscale ----------------------------------------------------------------------------------------------------
 
 lcid_bis_den <- ddtvar_long %>%
   group_by(wave) %>%
@@ -1234,17 +1451,17 @@ lcid_bis_den <- ddtvar_long %>%
     justification = -.25,
     point_color = NA
   ) +
+  geom_point(
+    aes(color = wave),
+    alpha = .5, shape = 16, stroke = .4, size = 2, position = position_jitter(seed = 1, width = .12)
+  ) +
   geom_boxplot(
     aes(
       color = wave, color = after_scale(darken(color, .8, space = "HLS")),
-      fill = after_scale(desaturate(lighten(color, .3), .4))
+      fill = after_scale(desaturate(lighten(color, .3), .4)), alpha = .7
     ),
     width = .25,
     outlier.shape = NA
-  ) +
-  geom_point(
-    aes(color = wave),
-    alpha = .5, shape = 21, stroke = .4, size = 1.5, position = position_jitter(seed = 1, width = .12)
   ) +
   stat_summary(
     geom = "text",
@@ -1256,22 +1473,25 @@ lcid_bis_den <- ddtvar_long %>%
     family = "Arial", size = 4, hjust = 0
   ) +
   coord_flip(xlim = c(1.2, NA), clip = "off") +
-  scale_fill_viridis_c(end = .7) +
-  scale_colour_viridis_c(end = .7) +
-  labs(x = "Wave", y = "BIS Subscale Score") +
+  scale_fill_viridis_c(begin = .1, end = .8, option = "C", direction = -1) +
+  scale_colour_viridis_c(begin = .1, end = .8, option = "C", direction = -1) +
+  labs(x = "Wave", y = "BIS score") +
   plot_theme +
   aspect_ratio_balanced +
-  scale_y_continuous(limits = c(0, 35), breaks = seq(0, 35, by = 5), expand = c(.05, 0)) +
-  annotate(x = -Inf, xend = -Inf, y = 0, yend = 35, colour = "#2E2E2E", lwd = 0.5, geom = "segment") +
+  scale_y_continuous(limits = c(5, 35), breaks = seq(5, 35, by = 5), expand = c(.05, 0)) +
+  annotate(x = -Inf, xend = -Inf, y = 5, yend = 35, colour = "#2E2E2E", lwd = 0.5, geom = "segment") +
   annotate(x = 1, xend = 3, y = -Inf, yend = -Inf, colour = "#2E2E2E", lwd = 0.5, geom = "segment") +
-  theme(axis.title.y = element_text(hjust = .41))
+  theme(
+    axis.title.y = element_text(hjust = .41),
+    axis.title = element_text(size = 12, face = "bold")
+  )
 
 ggplot2::ggsave(lcid_bis_den,
-  path = here::here("output", "images", "descriptives"),
-  filename = "bis_dens.png", dpi = 1200, device = "png"
+                path = here::here("output", "images", "descriptives"),
+                filename = "bis_dens.png", dpi = 600, device = "png"
 )
 
-#### PLOT: BAS subscale score across waves ----------------------------------------------------------------------------------
+#### BISBAS BAS Subscale score ----------------------------------------------------------------------------------------------
 
 lcid_bas_den <- ddtvar_long %>%
   group_by(wave) %>%
@@ -1288,17 +1508,18 @@ lcid_bas_den <- ddtvar_long %>%
     justification = -.25,
     point_color = NA
   ) +
+  geom_point(
+    aes(color = wave),
+    alpha = .5, shape = 16, stroke = .4, size = 1.5, position = position_jitter(seed = 1, width = .12)
+  ) +
   geom_boxplot(
     aes(
       color = wave, color = after_scale(darken(color, .8, space = "HLS")),
       fill = after_scale(desaturate(lighten(color, .3), .4))
     ),
     width = .25,
-    outlier.shape = NA
-  ) +
-  geom_point(
-    aes(color = wave),
-    alpha = .5, shape = 16, stroke = .4, size = 1.5, position = position_jitter(seed = 1, width = .12)
+    outlier.shape = NA,
+    alpha = .7
   ) +
   stat_summary(
     geom = "text",
@@ -1310,20 +1531,365 @@ lcid_bas_den <- ddtvar_long %>%
     family = "Arial", size = 4, hjust = 0
   ) +
   coord_flip(xlim = c(1.2, NA), clip = "off") +
-  labs(x = "Wave", y = "BAS Subscale Score") +
+  labs(x = "Wave", y = "BAS score") +
   plot_theme +
   aspect_ratio_balanced +
-  scale_fill_viridis_c(end = .7) +
-  scale_colour_viridis_c(end = .7) +
-  scale_y_continuous(limits = c(0, 60), breaks = seq(0, 60, by = 10), expand = c(.05, 0)) +
-  annotate(x = -Inf, xend = -Inf, y = 0, yend = 60, colour = "#2E2E2E", lwd = 0.5, geom = "segment") +
+  scale_fill_viridis_c(begin = .1, end = .8, option = "C", direction = -1) +
+  scale_colour_viridis_c(begin = .1, end = .8, option = "C", direction = -1) +
+  scale_y_continuous(limits = c(10, 60), breaks = seq(10, 60, by = 10), expand = c(.05, 0)) +
+  annotate(x = -Inf, xend = -Inf, y = 10, yend = 60, colour = "#2E2E2E", lwd = 0.5, geom = "segment") +
   annotate(x = 1, xend = 3, y = -Inf, yend = -Inf, colour = "#2E2E2E", lwd = 0.5, geom = "segment") +
-  theme(axis.title.y = element_text(hjust = .41))
+  theme(
+    axis.title.y = element_text(hjust = .41),
+    axis.title = element_text(size = 12, face = "bold")
+  )
 
 ggplot2::ggsave(lcid_bas_den,
-  path = here::here("output", "images", "descriptives"),
-  filename = "bas_dens.png", dpi = 1200, device = "png"
+                path = here::here("output", "images", "descriptives"),
+                filename = "bas_dens.png", dpi = 1200, device = "png"
 )
+
+# merge above bisbas plots on single output
+bisbas_dens <- ggpubr::ggarrange(
+  lcid_bisbas_den,
+  lcid_bis_den,
+  lcid_bas_den,
+  heights = c(1, 1, 1),
+  widths = c(1, 1, 1),
+  ncol = 3,
+  labels = c("A", "B", "C"), label.y = .8,
+  align = "v"
+)
+
+ggplot2::ggsave(bisbas_dens,
+                path = here::here("output", "images", "descriptives"),
+                filename = "bisbas_dens.png", dpi = 600, device = "png",
+                height = 5, width = 10
+)
+
+### SDQ Scale ---------------------------------------------------------------------------------------------------------------
+
+#### SDQ Scale total score --------------------------------------------------------------------------------------------------
+
+lcid_sdq_den <- ddtvar_long %>%
+  group_by(wave) %>%
+  filter(!is.na(sdq_total)) %>%
+  ggplot(aes(x = as.factor(wave), y = sdq_total)) +
+  ggdist::stat_halfeye(
+    aes(
+      color = wave,
+      fill = after_scale(lighten(color, 0))
+    ),
+    adjust = 1,
+    width = .75,
+    .width = 0,
+    justification = -.25,
+    point_color = NA
+  ) +
+  geom_point(
+    aes(color = wave),
+    alpha = .5, shape = 16, stroke = .4, size = 2, position = position_jitter(seed = 1, width = .12)
+  ) +
+  geom_boxplot(
+    aes(
+      color = wave, color = after_scale(darken(color, .8, space = "HLS")),
+      fill = after_scale(desaturate(lighten(color, .3), .4)), alpha = .7
+    ),
+    width = .25,
+    outlier.shape = NA
+  ) +
+  stat_summary(
+    geom = "text",
+    fun.data = add_sample,
+    aes(
+      label = paste("n =", ..label..), y = 0, x = (wave - 4),
+      color = wave, color = after_scale(darken(color, .1, space = "HLS"))
+    ),
+    family = "Arial", size = 12/.pt, hjust = 0
+  ) +
+  coord_flip(xlim = c(1.2, NA), clip = "off") +
+  scale_fill_viridis_c(begin = .1, end = .8, option = "C", direction = -1) +
+  scale_colour_viridis_c(begin = .1, end = .8, option = "C", direction = -1) +
+  labs(x = "Wave", y = "SDQ score") +
+  plot_theme +
+  aspect_ratio_balanced +
+  scale_y_continuous(limits = c(0, 40), breaks = seq(0, 40, by = 10), expand = c(.05, 0)) +
+  annotate(x = -Inf, xend = -Inf, y = 0, yend = 40, colour = "#2E2E2E", lwd = 0.5, geom = "segment") +
+  annotate(x = 1, xend = 3, y = -Inf, yend = -Inf, colour = "#2E2E2E", lwd = 0.5, geom = "segment") +
+  theme(
+    axis.title.y = element_text(hjust = .41),
+    axis.title = element_text(size = 12, face = "bold")
+  )
+
+#### SDQ Scale internalising subscale ---------------------------------------------------------------------------------------
+
+lcid_sdq_int_den <- ddtvar_long %>%
+  group_by(wave) %>%
+  filter(!is.na(sdq_int)) %>%
+  ggplot(aes(x = as.factor(wave), y = sdq_int)) +
+  ggdist::stat_halfeye(
+    aes(
+      color = wave,
+      fill = after_scale(lighten(color, 0))
+    ),
+    adjust = 1,
+    width = .75,
+    .width = 0,
+    justification = -.25,
+    point_color = NA
+  ) +
+  geom_point(
+    aes(color = wave),
+    alpha = .5, shape = 16, stroke = .4, size = 2, position = position_jitter(seed = 1, width = .12)
+  ) +
+  geom_boxplot(
+    aes(
+      color = wave, color = after_scale(darken(color, .8, space = "HLS")),
+      fill = after_scale(desaturate(lighten(color, .3), .4)), alpha = .7
+    ),
+    width = .25,
+    outlier.shape = NA
+  ) +
+  coord_flip(xlim = c(1.2, NA), clip = "off") +
+  scale_fill_viridis_c(begin = .1, end = .8, option = "C", direction = -1) +
+  scale_colour_viridis_c(begin = .1, end = .8, option = "C", direction = -1) +
+  labs(x = "Wave", y = "SDQ internalising score") +
+  plot_theme +
+  aspect_ratio_balanced +
+  scale_y_continuous(limits = c(0, 20), breaks = seq(0, 20, by = 5), expand = c(.05, 0)) +
+  annotate(x = -Inf, xend = -Inf, y = 0, yend = 20, colour = "#2E2E2E", lwd = 0.5, geom = "segment") +
+  annotate(x = 1, xend = 3, y = -Inf, yend = -Inf, colour = "#2E2E2E", lwd = 0.5, geom = "segment") +
+  theme(
+    axis.title.y = element_text(hjust = .41),
+    axis.title = element_text(size = 12, face = "bold")
+  )
+
+#### SDQ Scale externalising subscale ---------------------------------------------------------------------------------------
+
+lcid_sdq_ext_den <- ddtvar_long %>%
+  group_by(wave) %>%
+  filter(!is.na(sdq_ext)) %>%
+  ggplot(aes(x = as.factor(wave), y = sdq_ext)) +
+  ggdist::stat_halfeye(
+    aes(
+      color = wave,
+      fill = after_scale(lighten(color, 0))
+    ),
+    adjust = 1,
+    width = .75,
+    .width = 0,
+    justification = -.25,
+    point_color = NA
+  ) +
+  geom_point(
+    aes(color = wave),
+    alpha = .5, shape = 16, stroke = .4, size = 2, position = position_jitter(seed = 1, width = .12)
+  ) +
+  geom_boxplot(
+    aes(
+      color = wave, color = after_scale(darken(color, .8, space = "HLS")),
+      fill = after_scale(desaturate(lighten(color, .3), .4)), alpha = .7
+    ),
+    width = .25,
+    outlier.shape = NA
+  ) +
+  coord_flip(xlim = c(1.2, NA), clip = "off") +
+  scale_fill_viridis_c(begin = .1, end = .8, option = "C", direction = -1) +
+  scale_colour_viridis_c(begin = .1, end = .8, option = "C", direction = -1) +
+  labs(x = "Wave", y = "SDQ externalising score") +
+  plot_theme +
+  aspect_ratio_balanced +
+  scale_y_continuous(limits = c(0, 20), breaks = seq(0, 20, by = 5), expand = c(.05, 0)) +
+  annotate(x = -Inf, xend = -Inf, y = 0, yend = 20, colour = "#2E2E2E", lwd = 0.5, geom = "segment") +
+  annotate(x = 1, xend = 3, y = -Inf, yend = -Inf, colour = "#2E2E2E", lwd = 0.5, geom = "segment") +
+  theme(
+    axis.title.y = element_text(hjust = .41),
+    axis.title = element_text(size = 12, face = "bold")
+  )
+
+# merge above bisbas plots on single output
+sdq_dens <- ggpubr::ggarrange(
+  lcid_sdq_den,
+  lcid_sdq_int_den,
+  lcid_sdq_ext_den,
+  heights = c(1, 1, 1),
+  widths = c(1, 1, 1),
+  ncol = 3,
+  labels = c("A", "B", "C"), label.y = .8,
+  align = "v"
+)
+
+ggplot2::ggsave(sdq_dens,
+                path = here::here("output", "images", "descriptives"),
+                filename = "sdq_dens.png", dpi = 600, device = "png",
+                height = 5, width = 10
+)
+
+
+### HSCS Scale --------------------------------------------------------------------------------------------------------------
+
+#### HSCS Scale total score -------------------------------------------------------------------------------------------------
+
+lcid_hscs_den <- ddtvar_long %>%
+  group_by(wave) %>%
+  filter(!is.na(hscs_total)) %>%
+  ggplot(aes(x = as.factor(wave), y = hscs_total)) +
+  ggdist::stat_halfeye(
+    aes(
+      color = wave,
+      fill = after_scale(lighten(color, 0))
+    ),
+    adjust = 1,
+    width = .75,
+    .width = 0,
+    justification = -.25,
+    point_color = NA
+  ) +
+  geom_point(
+    aes(color = wave),
+    alpha = .5, shape = 16, stroke = .4, size = 2, position = position_jitter(seed = 1, width = .12)
+  ) +
+  geom_boxplot(
+    aes(
+      color = wave, color = after_scale(darken(color, .8, space = "HLS")),
+      fill = after_scale(desaturate(lighten(color, .3), .4)), alpha = .7
+    ),
+    width = .25,
+    outlier.shape = NA
+  ) +
+  stat_summary(
+    geom = "text",
+    fun.data = add_sample,
+    aes(
+      label = paste("n =", ..label..), y = 0, x = (wave - 4),
+      color = wave, color = after_scale(darken(color, .1, space = "HLS"))
+    ),
+    family = "Arial", size = 12/.pt, hjust = 0
+  ) +
+  coord_flip(xlim = c(1.2, NA), clip = "off") +
+  scale_fill_viridis_c(begin = .1, end = .8, option = "C", direction = -1) +
+  scale_colour_viridis_c(begin = .1, end = .8, option = "C", direction = -1) +
+  labs(x = "Wave", y = "HSCS score") +
+  plot_theme +
+  aspect_ratio_balanced +
+  scale_y_continuous(limits = c(0, 90), breaks = seq(0, 90, by = 10), expand = c(.05, 0)) +
+  annotate(x = -Inf, xend = -Inf, y = 0, yend = 90, colour = "#2E2E2E", lwd = 0.5, geom = "segment") +
+  annotate(x = 1, xend = 3, y = -Inf, yend = -Inf, colour = "#2E2E2E", lwd = 0.5, geom = "segment") +
+  theme(
+    axis.title.y = element_text(hjust = .41),
+    axis.title = element_text(size = 12, face = "bold")
+  )
+
+### EATQ Scale --------------------------------------------------------------------------------------------------------------
+
+#### EATQ-EC subscale score -------------------------------------------------------------------------------------------------
+
+lcid_eatq_den <- ddtvar_long %>%
+  group_by(wave) %>%
+  filter(!is.na(eatq_ec_total)) %>%
+  ggplot(aes(x = as.factor(wave), y = eatq_ec_total)) +
+  ggdist::stat_halfeye(
+    aes(
+      color = wave,
+      fill = after_scale(lighten(color, 0))
+    ),
+    adjust = 1,
+    width = .75,
+    .width = 0,
+    justification = -.25,
+    point_color = NA
+  ) +
+  geom_point(
+    aes(color = wave),
+    alpha = .5, shape = 16, stroke = .4, size = 2, position = position_jitter(seed = 1, width = .12)
+  ) +
+  geom_boxplot(
+    aes(
+      color = wave, color = after_scale(darken(color, .8, space = "HLS")),
+      fill = after_scale(desaturate(lighten(color, .3), .4)), alpha = .7
+    ),
+    width = .25,
+    outlier.shape = NA
+  ) +
+  stat_summary(
+    geom = "text",
+    fun.data = add_sample,
+    aes(
+      label = paste("n =", ..label..), y = 30, x = (wave - 4),
+      color = wave, color = after_scale(darken(color, .1, space = "HLS"))
+    ),
+    family = "Arial", size = 12/.pt, hjust = 0
+  ) +
+  coord_flip(xlim = c(1.2, NA), clip = "off") +
+  scale_fill_viridis_c(begin = .1, end = .8, option = "C", direction = -1) +
+  scale_colour_viridis_c(begin = .1, end = .8, option = "C", direction = -1) +
+  labs(x = "Wave", y = "EATQ-EC score") +
+  plot_theme +
+  aspect_ratio_balanced +
+  scale_y_continuous(limits = c(30, 70), breaks = seq(30, 70, by = 10), expand = c(.05, 0)) +
+  annotate(x = -Inf, xend = -Inf, y = 30, yend = 70, colour = "#2E2E2E", lwd = 0.5, geom = "segment") +
+  annotate(x = 1, xend = 3, y = -Inf, yend = -Inf, colour = "#2E2E2E", lwd = 0.5, geom = "segment") +
+  theme(
+    axis.title.y = element_text(hjust = .41),
+    axis.title = element_text(size = 12, face = "bold")
+  )
+
+# merge above bisbas plots on single output
+hscs_eatq_dens <- ggpubr::ggarrange(
+  lcid_hscs_den,
+  lcid_eatq_den,
+  widths = c(1, 1),
+  heights = c(1, 1),
+  ncol = 2,
+  labels = c("A", "B"), label.y = .8,
+  align = "v"
+)
+
+ggplot2::ggsave(hscs_eatq_dens,
+                path = here::here("output", "images", "descriptives"),
+                filename = "hscs_eatq_denss.png", dpi = 600, device = "png",
+                height = 5, width = 10
+)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 #### PLOT: Simulated visualisation for hyperbolic model (k)  ----------------------------------------------------------------
 
