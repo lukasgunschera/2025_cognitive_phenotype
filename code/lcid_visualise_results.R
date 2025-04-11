@@ -125,7 +125,7 @@ dd_hyperbo_check_06 <- readRDS(here::here("output", "modelfit", "dd_hyperbo_chec
 dd_hyperbo_loo_06 <- readRDS(here::here("output", "modelfit", "dd_hyperbo_loo_06.RDS"))
 dd_hyperbo_params_06 <- readRDS(here::here("output", "modelfit", "dd_hyperbo_parameters_06.RDS"))
 
-## SAMPLE CHARACTERISTICS ===================================================================================================
+## DESCRIPTIVES =============================================================================================================
 
 # get number of male and female participants per wave
 dat_demographics %>%
@@ -158,7 +158,7 @@ p_age <- dat_demographics %>%
 # print with more digits
 print.data.frame(p_age, digits = 5); base::remove(p_age)
 
-#### BIS subscale -----------------------------------------------------------------------------------------------------------
+#### Behavioural inhibition subscale ----------------------------------------------------------------------------------------
 
 p_bis <- ddtvar_long %>%
   group_by(sex_c, wave) %>%
@@ -171,7 +171,7 @@ p_bis <- ddtvar_long %>%
 # print with more digits
 print.data.frame(p_bis, digits = 5); base::remove(p_bis)
 
-#### BAS subscale -----------------------------------------------------------------------------------------------------------
+#### Behavioural activation subscale ----------------------------------------------------------------------------------------
 
 p_bas <- ddtvar_long %>%
   group_by(sex_c, wave) %>%
@@ -184,7 +184,7 @@ p_bas <- ddtvar_long %>%
 # print with more digits
 print.data.frame(p_bas, digits = 5); base::remove(p_bas)
 
-#### SDQ scale --------------------------------------------------------------------------------------------------------------
+#### Strength and difficulties questionnaire --------------------------------------------------------------------------------
 
 p_sdq <- ddtvar_long %>%
   group_by(sex_c, wave) %>%
@@ -197,7 +197,7 @@ p_sdq <- ddtvar_long %>%
 # print with more digits
 print.data.frame(p_sdq, digits = 5); base::remove(p_sdq)
 
-#### HSCS scale -------------------------------------------------------------------------------------------------------------
+#### Highly sensitive child scale -------------------------------------------------------------------------------------------
 
 p_hscs <- ddtvar_long %>%
   group_by(sex_c, wave) %>%
@@ -210,7 +210,7 @@ p_hscs <- ddtvar_long %>%
 # print with more digits
 print.data.frame(p_hscs, digits = 5); base::remove(p_hscs)
 
-#### EATQ-EC subscale -------------------------------------------------------------------------------------------------------
+#### Early adolescent temperament questionnaire effortful control subscale --------------------------------------------------
 
 p_eatq <- ddtvar_long %>%
   group_by(sex_c, wave) %>%
@@ -236,7 +236,7 @@ p_sm <- ddtvar_long %>%
 # print with more digits
 print.data.frame(p_sm, digits = 5); base::remove(p_sm)
 
-#### Compulsive Internet Use --------------------------------------------------------------------------------------------
+#### Compulsive internet use scale ------------------------------------------------------------------------------------------
 
 p_cius <- ddtvar_long %>%
   group_by(sex_c, wave) %>%
@@ -2129,7 +2129,227 @@ ggplot2::ggsave(corplots,
   filename = "corplot.png", dpi = 1200, device = "png"
 )
 
-### PLOTS: Delay Discounting Model Descriptives -----------------------------------------------------------------------------
+### PLOTS: Delay Discounting ------------------------------------------------------------------------------------------------
+
+#### Plot: Delay discounting ~ mental health indicators ---------------------------------------------------------------------
+
+# BIS - Behavioural inhibition subscale
+
+lmer_fit <- lmerTest::lmer(bisbas_bis ~ logk + (1 | subjID), data = ddtvar_long %>% filter(!is.na(logk), !is.na(bisbas_bis)))
+
+# simplistic model across all individuals (for plotting sake)
+lm_fit <- lm(bisbas_bis ~ logk, data = ddtvar_long)
+std_coef <- effectsize::standardize_parameters(lmer_fit, method = "refit")
+
+# examine results and standardised coefficients
+print(summary(lmer_fit), digits = 5)
+print(std_coef, digits = 5)
+
+# get R square
+MuMIn::r.squaredGLMM(lmer_fit)
+
+# get predicted bis score
+pred <- ggeffects::ggpredict(lmer_fit, terms = "logk")
+print(pred, digits = 3)
+
+# plot the relationship across participants
+dd_bis <- ddtvar_long %>%
+  filter(!is.na(logk) & !is.na(bisbas_bis)) %>%
+  mutate(residuals = abs(bisbas_bis - predict(lm_fit))) %>%
+  ggplot(., aes(x = logk, y = bisbas_bis, color = residuals)) +
+  geom_point(alpha = .75, shape = 16, stroke = .4, size = 2, position = position_jitter(seed = 1, width = .01)) +
+  # geom_smooth(method = "lm", se = FALSE) +
+  geom_smooth(method = "lm", formula = y ~ x, size = .5, span = 1, colour = "#2E2E2E") +
+  scale_colour_viridis(begin = .1, end = .8, option = "C", direction = 1) +
+  plot_theme +
+  aspect_ratio_square +
+  labs(y = "BIS", x = "Delay discounting (-logk)") +
+  scale_x_continuous(
+    breaks = seq(0, 10, 2), expand = c(0.04, 0)) +
+  scale_y_continuous(limits = c(0, 30), breaks = seq(0, 30, 10), expand = c(0.04, 0)) +
+  annotate(x = 0, xend = 10, y = -Inf, yend = -Inf, colour = "#2E2E2E", lwd = 0.75, geom = "segment") +
+  annotate(x = -Inf, xend = -Inf, y = 0, yend = 30, colour = "#2E2E2E", lwd = 0.75, geom = "segment")
+
+# BAS - Behavioural activation subscale
+
+lmer_fit <- lmerTest::lmer(bisbas_bas ~ logk + (1 | subjID), data = ddtvar_long %>% filter(!is.na(logk), !is.na(bisbas_bas)))
+
+# simplistic model across all individuals (for plotting sake)
+lm_fit <- lm(bisbas_bas ~ logk, data = ddtvar_long)
+std_coef <- effectsize::standardize_parameters(lmer_fit, method = "refit")
+
+# examine results and standardised coefficients
+print(summary(lmer_fit), digits = 5)
+print(std_coef, digits = 5)
+
+# get R square
+MuMIn::r.squaredGLMM(lmer_fit)
+
+# get predicted bis score
+pred <- ggeffects::ggpredict(lmer_fit, terms = "logk")
+print(pred, digits = 3)
+
+# plot the relationship across participants
+
+dd_bas <- ddtvar_long %>%
+  filter(!is.na(logk) & !is.na(bisbas_bas)) %>%
+  mutate(residuals = abs(bisbas_bas - predict(lm_fit))) %>%
+  ggplot(., aes(x = logk, y = bisbas_bas, color = residuals)) +
+  geom_point(alpha = .75, shape = 16, stroke = .4, size = 2, position = position_jitter(seed = 1, width = .01)) +
+  # geom_smooth(method = "lm", se = FALSE) +
+  geom_smooth(method = "lm", formula = y ~ x, size = .5, span = 1, colour = "#2E2E2E") +
+  scale_colour_viridis(begin = .1, end = .8, option = "C", direction = 1) +
+  plot_theme +
+  aspect_ratio_square +
+  labs(y = "BAS", x = "Delay discounting (-logk)") +
+  scale_x_continuous(
+    breaks = seq(0, 10, 2), expand = c(0.04, 0)) +
+  scale_y_continuous(limits = c(20, 52), breaks = seq(20, 50, 10), expand = c(0.04, 0)) +
+  annotate(x = 0, xend = 10, y = -Inf, yend = -Inf, colour = "#2E2E2E", lwd = 0.75, geom = "segment") +
+  annotate(x = -Inf, xend = -Inf, y = 20, yend = 50, colour = "#2E2E2E", lwd = 0.75, geom = "segment")
+
+# SDQ - Strength and difficulties questionnaire
+
+lmer_fit <- lmerTest::lmer(sdq_total ~ logk + (1 | subjID), data = ddtvar_long %>% filter(!is.na(logk), !is.na(sdq_total)))
+
+# simplistic model across all individuals (for plotting sake)
+lm_fit <- lm(sdq_total ~ logk, data = ddtvar_long)
+std_coef <- effectsize::standardize_parameters(lmer_fit, method = "refit")
+
+# examine results and standardised coefficients
+print(summary(lmer_fit), digits = 5)
+print(std_coef, digits = 5)
+
+# get R square
+MuMIn::r.squaredGLMM(lmer_fit)
+
+# get predicted bis score
+pred <- ggeffects::ggpredict(lmer_fit, terms = "logk")
+print(pred, digits = 3)
+
+# plot the relationship across participants
+
+dd_sdq <- ddtvar_long %>%
+  filter(!is.na(logk) & !is.na(sdq_total)) %>%
+  mutate(residuals = abs(sdq_total - predict(lm_fit))) %>%
+  ggplot(., aes(x = logk, y = sdq_total, color = residuals)) +
+  geom_point(alpha = .75, shape = 16, stroke = .4, size = 2, position = position_jitter(seed = 1, width = .01)) +
+  # geom_smooth(method = "lm", se = FALSE) +
+  geom_smooth(method = "lm", formula = y ~ x, size = .5, span = 1, colour = "#2E2E2E") +
+  scale_colour_viridis(begin = .1, end = .8, option = "C", direction = 1) +
+  plot_theme +
+  aspect_ratio_square +
+  labs(y = "SDQ", x = "Delay discounting (-logk)") +
+  scale_x_continuous(
+    breaks = seq(0, 10, 2), expand = c(0.04, 0)) +
+  scale_y_continuous(limits = c(10, 40), breaks = seq(10, 40, 10), expand = c(0.04, 0)) +
+  annotate(x = 0, xend = 10, y = -Inf, yend = -Inf, colour = "#2E2E2E", lwd = 0.75, geom = "segment") +
+  annotate(x = -Inf, xend = -Inf, y = 10, yend = 40, colour = "#2E2E2E", lwd = 0.75, geom = "segment")
+
+# HSCS - Highly sensitive child scale
+
+lmer_fit <- lmerTest::lmer(hscs_total ~ logk + (1 | subjID), data = ddtvar_long %>% filter(!is.na(logk), !is.na(hscs_total)))
+
+# simplistic model across all individuals (for plotting sake)
+lm_fit <- lm(hscs_total ~ logk, data = ddtvar_long)
+std_coef <- effectsize::standardize_parameters(lmer_fit, method = "refit")
+
+# examine results and standardised coefficients
+print(summary(lmer_fit), digits = 5)
+print(std_coef, digits = 5)
+
+# get R square
+MuMIn::r.squaredGLMM(lmer_fit)
+
+# get predicted bis score
+pred <- ggeffects::ggpredict(lmer_fit, terms = "logk")
+print(pred, digits = 3)
+
+# plot the relationship across participants
+
+dd_hscs <- ddtvar_long %>%
+  filter(!is.na(logk) & !is.na(hscs_total)) %>%
+  mutate(residuals = abs(hscs_total - predict(lm_fit))) %>%
+  ggplot(., aes(x = logk, y = hscs_total, color = residuals)) +
+  geom_point(alpha = .75, shape = 16, stroke = .4, size = 2, position = position_jitter(seed = 1, width = .01)) +
+  # geom_smooth(method = "lm", se = FALSE) +
+  geom_smooth(method = "lm", formula = y ~ x, size = .5, span = 1, colour = "#2E2E2E") +
+  scale_colour_viridis(begin = .1, end = .8, option = "C", direction = 1) +
+  plot_theme +
+  aspect_ratio_square +
+  labs(y = "HSCS", x = "Delay discounting (-logk)") +
+  scale_x_continuous(
+    breaks = seq(0, 10, 2), expand = c(0.04, 0)) +
+  scale_y_continuous(limits = c(10, 92), breaks = seq(10, 90, 20), expand = c(0.04, 0)) +
+  annotate(x = 0, xend = 10, y = -Inf, yend = -Inf, colour = "#2E2E2E", lwd = 0.75, geom = "segment") +
+  annotate(x = -Inf, xend = -Inf, y = 10, yend = 90, colour = "#2E2E2E", lwd = 0.75, geom = "segment")
+
+# EATQ-EC - Early adolescent temperament questionnaire effortful control subscale
+
+lmer_fit <- lmerTest::lmer(eatq_ec_total ~ logk + (1 | subjID), data = ddtvar_long %>% filter(!is.na(logk), !is.na(eatq_ec_total)))
+
+# simplistic model across all individuals (for plotting sake)
+lm_fit <- lm(eatq_ec_total ~ logk, data = ddtvar_long)
+std_coef <- effectsize::standardize_parameters(lmer_fit, method = "refit")
+
+# examine results and standardised coefficients
+print(summary(lmer_fit), digits = 5)
+print(std_coef, digits = 5)
+
+# get R square
+MuMIn::r.squaredGLMM(lmer_fit)
+
+# get predicted bis score
+pred <- ggeffects::ggpredict(lmer_fit, terms = "logk")
+print(pred, digits = 3)
+
+# plot the relationship across participants
+
+dd_eatq_ec <- ddtvar_long %>%
+  filter(!is.na(logk) & !is.na(eatq_ec_total)) %>%
+  mutate(residuals = abs(eatq_ec_total - predict(lm_fit))) %>%
+  ggplot(., aes(x = logk, y = eatq_ec_total, color = residuals)) +
+  geom_point(alpha = .75, shape = 16, stroke = .4, size = 2, position = position_jitter(seed = 1, width = .01)) +
+  # geom_smooth(method = "lm", se = FALSE) +
+  geom_smooth(method = "lm", formula = y ~ x, size = .5, span = 1, colour = "#2E2E2E") +
+  scale_colour_viridis(begin = .1, end = .8, option = "C", direction = 1) +
+  plot_theme +
+  aspect_ratio_square +
+  labs(y = "EATQ-EC", x = "Delay discounting (-logk)") +
+  scale_x_continuous(
+    breaks = seq(0, 10, 2), expand = c(0.04, 0)) +
+  scale_y_continuous(limits = c(40, 70), breaks = seq(40, 70, 10), expand = c(0.04, 0)) +
+  annotate(x = 0, xend = 10, y = -Inf, yend = -Inf, colour = "#2E2E2E", lwd = 0.75, geom = "segment") +
+  annotate(x = -Inf, xend = -Inf, y = 40, yend = 70, colour = "#2E2E2E", lwd = 0.75, geom = "segment")
+
+# merge above plots into a single visualisation
+dd_mh <- ggpubr::ggarrange(
+  dd_bis + theme(axis.title.x = element_blank(), axis.title.y = element_text(face = "bold")),
+  dd_bas + theme(axis.title.x = element_blank(), axis.title.y = element_text(face = "bold")),
+  dd_sdq + theme(axis.title.x = element_blank(), axis.title.y = element_text(face = "bold")),
+  dd_hscs + theme(axis.title.x = element_blank(), axis.title.y = element_text(face = "bold")),
+  dd_eatq_ec + theme(axis.title.x = element_blank(), axis.title.y = element_text(face = "bold")),
+  heights = c(.25, .5, .5, .5, .5),
+  widths = c(1, 1, 1, 1, 1, .2),
+  ncol = 6,
+  labels = c("A", "B", "C", "D", "E", ""), label.y = .725,
+  align = "v"
+)
+
+dd_mh <- ggpubr::annotate_figure(dd_mh,
+                        bottom = ggpubr::text_grob("Delay discounting (-logk)",
+                                                   face = "bold",
+                                                   size = 11,
+                                                   vjust = -16))
+
+ggsave(dd_mh,
+  path = here::here("output", "images", "descriptives"),
+  filename = "dd_mh.png", dpi = 1200, device = "png"
+)
+
+
+
+
 
 #### PLOT: Delay discounting ~ socio-economic status ------------------------------------------------------------------------
 
