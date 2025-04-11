@@ -156,7 +156,7 @@ p_age <- dat_demographics %>%
   )
 
 # print with more digits
-print.data.frame(p_age, digits = 5); remove(p_age)
+print.data.frame(p_age, digits = 5); base::remove(p_age)
 
 #### BIS subscale -----------------------------------------------------------------------------------------------------------
 
@@ -169,7 +169,7 @@ p_bis <- ddtvar_long %>%
   )
 
 # print with more digits
-print.data.frame(p_bis, digits = 5); remove(p_bis)
+print.data.frame(p_bis, digits = 5); base::remove(p_bis)
 
 #### BAS subscale -----------------------------------------------------------------------------------------------------------
 
@@ -182,7 +182,7 @@ p_bas <- ddtvar_long %>%
   )
 
 # print with more digits
-print.data.frame(p_bas, digits = 5); remove(p_bas)
+print.data.frame(p_bas, digits = 5); base::remove(p_bas)
 
 #### SDQ scale --------------------------------------------------------------------------------------------------------------
 
@@ -195,7 +195,7 @@ p_sdq <- ddtvar_long %>%
   )
 
 # print with more digits
-print.data.frame(p_sdq, digits = 5); remove(p_sdq)
+print.data.frame(p_sdq, digits = 5); base::remove(p_sdq)
 
 #### HSCS scale -------------------------------------------------------------------------------------------------------------
 
@@ -208,7 +208,7 @@ p_hscs <- ddtvar_long %>%
   )
 
 # print with more digits
-print.data.frame(p_hscs, digits = 5); remove(p_hscs)
+print.data.frame(p_hscs, digits = 5); base::remove(p_hscs)
 
 #### EATQ-EC subscale -------------------------------------------------------------------------------------------------------
 
@@ -221,7 +221,7 @@ p_eatq <- ddtvar_long %>%
   )
 
 # print with more digits
-print.data.frame(p_eatq, digits = 5); remove(p_eatq)
+print.data.frame(p_eatq, digits = 5); base::remove(p_eatq)
 
 #### Social media use -------------------------------------------------------------------------------------------------------
 
@@ -234,7 +234,7 @@ p_sm <- ddtvar_long %>%
   )
 
 # print with more digits
-print.data.frame(p_sm, digits = 5); remove(p_sm)
+print.data.frame(p_sm, digits = 5); base::remove(p_sm)
 
 #### Compulsive Internet Use --------------------------------------------------------------------------------------------
 
@@ -247,7 +247,7 @@ p_cius <- ddtvar_long %>%
   )
 
 # print with more digits
-print.data.frame(p_cius, digits = 5); remove(p_cius)
+print.data.frame(p_cius, digits = 5); base::remove(p_cius)
 
 #### Delay discounting ------------------------------------------------------------------------------------------------------
 
@@ -260,7 +260,7 @@ p_logk <- ddtvar_long %>%
   )
 
 # print with more digits
-print.data.frame(p_logk, digits = 4); remove(p_logk)
+print.data.frame(p_logk, digits = 4); base::remove(p_logk)
 
 ### Examine Missingness -----------------------------------------------------------------------------------------------------
 
