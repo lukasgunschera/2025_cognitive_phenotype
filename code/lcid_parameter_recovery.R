@@ -287,39 +287,12 @@ pr_corplot <- ggcorrplot::ggcorrplot(
   type = "full",
   lab = TRUE,
   digits = 3,
-  hc.order = FALSE,  # Critical to preserve manual ordering
-  outline.color = "white",
-  tl.cex = 12,
-  lab_size = 4,
-  show.legend = FALSE,
-  colors = c("#feca8d", "#fcfdbf", "#6ece58"),
-  tl.srt = 0
-  ) +
-  ggplot2::labs(x = 'Simulated', y = 'Recovered') +
-  ggplot2::theme(
-    axis.title.x = element_text(angle = 0, vjust = -2, face = "bold", colour = "#2E2E2E", size = 12),
-    axis.title.y = element_text(angle = 90, vjust = 2, face = "bold", colour = "#2E2E2E", size = 12)
-  ) +
-  theme(axis.text.x  = element_text(size = 12, angle = 0, vjust = 1, hjust = 1,
-                                 margin = margin(3,0,0,0)),
-        axis.text.y = element_text(size = 12, margin = margin(0,-3,0,0)),
-        panel.grid.major = element_blank())
-
-
-
-
-pr_corplot <- ggcorrplot::ggcorrplot(
-  cormat_subset,
-  method = "square",
-  type = "full",
-  lab = TRUE,
-  digits = 3,
   hc.order = FALSE,
   outline.color = "white",
   tl.cex = 12,
   lab_size = 4,
   show.legend = FALSE,
-  colors = c("#feca8d", "#fcfdbf", "#6ece58"),
+  colors = c("#feca8d", "#fcfdbf", "#F99A3EFF"),
   tl.srt = 0
 ) +
   labs(x = 'Simulated', y = 'Recovered') +
@@ -352,7 +325,7 @@ stats::cor(log(dd_par_pr$value[dd_par_pr$parameter == "k"]), -log(dd_par_pr$valu
 prec_logk <- dd_par_pr %>%
   dplyr::filter(parameter == "k") %>%
   ggplot(., aes(x = -log(value), y = -log(value_rec), colour = abs(-log(value) - (-log(value_rec))))) +
-  geom_point(shape = 16, size = 3 ,alpha = .50) +
+  geom_point(shape = 16, size = 3 ,alpha = .70) +
   geom_smooth(method = "lm", colour = "#2E2E2E", fill = "#A2AFB5", fullrange = TRUE, na.rm = TRUE) +
   plot_theme_legend +
   aspect_ratio_square +
@@ -362,11 +335,11 @@ prec_logk <- dd_par_pr %>%
   annotate(x = 0, xend = 10, y = -Inf, yend = -Inf, colour = "#2E2E2E", lwd = 0.75, geom = "segment") +
   # stat_poly_eq(method = "lm", label.x = .95, label.y = .95, use_label(c("eq"))) +
   labs(x = "Simulated (logk)", y = "Recovered (logk)", colour = "Residual", ) +
-  theme(axis.title.x = element_text(face = "bold", size = 12),  # Bold x-axis title
-         axis.title.y = element_text(face = "bold", size = 12, vjust = -1),  # Bold y-axis title
+  theme(axis.title.x = element_text(face = "bold", size = 12),
+         axis.title.y = element_text(face = "bold", size = 12, vjust = -1),
          ) +
   theme(plot.margin = unit(c(.25,.25,.25,.25), "cm")) +
-  scale_colour_viridis() +
+  scale_colour_viridis_c(begin = .1, end = .8, option = "C", direction = 1) +
   theme(axis.text.x  = element_text(size = 12, angle = 0,
                                     margin = margin(2,0,0,0)),
         axis.text.y = element_text(size = 12, margin = margin(0,0,2,0)),
@@ -418,5 +391,3 @@ ggsave(
   dpi = 600,        # Lower DPI if file size is too large
   device = "png"
 )
-
-
