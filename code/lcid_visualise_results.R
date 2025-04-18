@@ -1964,18 +1964,29 @@ ggplot2::ggsave(gg_soft_sim,
 ### PLOTS: Delay Discounting Descriptives -----------------------------------------------------------------------------------
 
 dd_choice_logk <- dd_choice %>%
-  ggplot(., aes(x = logk, y = prop, color = choice, fill = choice)) +
+  mutate(choice = factor(choice, levels = c("prop_sooner", "prop_later"))) %>%
+  ggplot(aes(x = logk, y = prop)) +
   geom_point(alpha = .3, aes(colour = choice), shape = 16, size = 1.5) +
-  geom_smooth(method = "loess", se = TRUE, fullrange = TRUE) +
+  geom_smooth(aes(color = choice, fill = choice), method = "loess", se = TRUE, fullrange = TRUE) +
   plot_theme_legend +
   aspect_ratio_balanced +
   theme(element_text(size = 4)) +
   scale_x_continuous(limits = c(0, 12), breaks = seq(0, 12, by = 3)) +
-  scale_fill_viridis_d(end = 1, name = "Choice", labels = c("Proportion later", "Proportion sooner")) +
-  scale_colour_viridis_d(end = 1, name = "Choice", labels = c("Proportion later", "Proportion sooner")) +
+  scale_fill_viridis_d(
+    end = 1, direction = -1,
+    name = "Choice",
+    labels = c("Sooner", "Later")
+  ) +
+  scale_colour_viridis_d(
+    end = 1, direction = -1,
+    name = "Choice",
+    labels = c("Sooner", "Later"),
+    guide = "legend"
+  ) +
+  guides(color = guide_legend(override.aes = list(linetype = "blank", shape = NA))) +
   annotate(x = -Inf, xend = -Inf, y = 0, yend = 1, colour = "#2E2E2E", lwd = 0.5, geom = "segment") +
   annotate(x = 0, xend = 12, y = -Inf, yend = -Inf, colour = "#2E2E2E", lwd = 0.5, geom = "segment") +
-  labs(x = "Delay discounting parameter (logk)", y = "Proportion of responses")
+  labs(x = "Delay discounting parameter (-logk)", y = "Response proportion")
 
 ggplot2::ggsave(dd_choice_logk,
   path = here::here("output", "images"),
