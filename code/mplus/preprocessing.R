@@ -13,16 +13,15 @@ set.seed(777)
 required_packages <- c("here", "dplyr", "magrittr", "purrr", "readr", "stringr", "haven", "tidyr", "MplusAutomation")
 invisible(lapply(required_packages, library, character.only = TRUE))
 
-here::i_am("README.md") # set parent directory to README.md file of project
+here::i_am("renv.lock") # set parent directory to renv.lock file of project
 here::here()
 
-source(here("code", "lcid_delaydiscount", "functions", "fun_prepare_mplus_data.R"))
+source(here("code", "functions", "fun_prepare_mplus_data.R"))
 
 # LOAD DATA -----------------------------------------------------------------------------------------------------------------
-dat_tinvar <- readr::read_csv(here("data", "lcid", "dd_delaydiscount", "processed", "tinvar_masterdat_wide.csv"))
-dat_tvar <- readr::read_csv(here("data", "lcid", "dd_delaydiscount", "processed", "tvar_masterdat_wide.csv"))
+dat_tvar <- readr::read_csv(here("data", "processed", "tvar_masterdat_wide.csv"))
 
-aux_variables <- readRDS(here::here("data", "lcid", "dd_delaydiscount", "processed", "auxiliary_variables.rds"))
+aux_variables <- readRDS(here::here("data", "processed", "auxiliary_variables.rds"))
 aux_variables
 
 # TIME-VARIANT DATA ---------------------------------------------------------------------------------------------------------
@@ -230,21 +229,21 @@ aux_variables <- c(
 
 ## Create data subsets for baseline models  ---------------------------------------------------------------------------------
 dat_baseline_eatq <-
-  mplus_analysis_filter_na(df = dat_tinvar, varnames = c("subjID", "sex", "smp5", "smp6", "smp7", "eat5", "eat6", "eat7"))
+  mplus_analysis_filter_na(df = dat_tvar, varnames = c("subjID", "sex", "smp5", "smp6", "smp7", "eat5", "eat6", "eat7"))
 dat_baseline_bisbas <-
-  mplus_analysis_filter_na(df = dat_tinvar, varnames = c("subjID", "sex", "smp5", "smp6", "smp7", "bbt5", "bbt6", "bbt7"))
+  mplus_analysis_filter_na(df = dat_tvar, varnames = c("subjID", "sex", "smp5", "smp6", "smp7", "bbt5", "bbt6", "bbt7"))
 dat_baseline_bis <-
-  mplus_analysis_filter_na(df = dat_tinvar, varnames = c("subjID", "sex", "smp5", "smp6", "smp7", "bis5", "bis6", "bis7"))
+  mplus_analysis_filter_na(df = dat_tvar, varnames = c("subjID", "sex", "smp5", "smp6", "smp7", "bis5", "bis6", "bis7"))
 dat_baseline_bas <-
-  mplus_analysis_filter_na(df = dat_tinvar, varnames = c("subjID", "sex", "smp5", "smp6", "smp7", "bas5", "bas6", "bas7"))
+  mplus_analysis_filter_na(df = dat_tvar, varnames = c("subjID", "sex", "smp5", "smp6", "smp7", "bas5", "bas6", "bas7"))
 dat_baseline_hscs <-
-  mplus_analysis_filter_na(df = dat_tinvar, varnames = c("subjID", "sex", "smp5", "smp6", "smp7", "hsc5", "hsc6", "hsc7"))
+  mplus_analysis_filter_na(df = dat_tvar, varnames = c("subjID", "sex", "smp5", "smp6", "smp7", "hsc5", "hsc6", "hsc7"))
 dat_baseline_sdq <-
-  mplus_analysis_filter_na(df = dat_tinvar, varnames = c("subjID", "sex", "smp5", "smp6", "smp7", "sdq5", "sdq6", "sdq7"))
+  mplus_analysis_filter_na(df = dat_tvar, varnames = c("subjID", "sex", "smp5", "smp6", "smp7", "sdq5", "sdq6", "sdq7"))
 dat_baseline_sdqi <-
-  mplus_analysis_filter_na(df = dat_tinvar, varnames = c("subjID", "sex", "smp5", "smp6", "smp7", "sdqi5", "sdqi6", "sdqi7"))
+  mplus_analysis_filter_na(df = dat_tvar, varnames = c("subjID", "sex", "smp5", "smp6", "smp7", "sdqi5", "sdqi6", "sdqi7"))
 dat_baseline_sdqe <-
-  mplus_analysis_filter_na(df = dat_tinvar, varnames = c("subjID", "sex", "smp5", "smp6", "smp7", "sdqe5", "sdqe6", "sdqe7"))
+  mplus_analysis_filter_na(df = dat_tvar, varnames = c("subjID", "sex", "smp5", "smp6", "smp7", "sdqe5", "sdqe6", "sdqe7"))
 
 ## Create data subsets for time-variant moderation models  ------------------------------------------------------------------
 dat_logk_eatq <-
@@ -315,16 +314,6 @@ baseline_datasets <- list(
   list(df = dat_baseline_sdqe, filename = "lcid_baseline_sdqe.dat")
 )
 
-# Tinvar  moderation datasets
-tinvar_datasets <- list(
-  list(df = dat_mod_eatq, filename = "lcid_tinvar_logk_eatq.dat"),
-  list(df = dat_mod_bisbas, filename = "lcid_tinvar_logk_bisbas.dat"),
-  list(df = dat_mod_hscs, filename = "lcid_tinvar_logk_hscs.dat"),
-  list(df = dat_mod_sdq, filename = "lcid_tinvar_logk_sdq.dat"),
-  list(df = dat_mod_sdqi, filename = "lcid_tinvar_logk_sdqi.dat"),
-  list(df = dat_mod_sdqe, filename = "lcid_tinvar_logk_sdqe.dat")
-)
-
 # Tvar moderation (logk) datasets
 tvar_datasets <- list(
   list(df = dat_logk_eatq, filename = "lcid_logk_eatq.dat"),
@@ -353,15 +342,15 @@ tvar_datasets_beta <- list(
 
 # Process baseline datasets
 lapply(baseline_datasets, function(dataset) {
-  prepare_mplus_data(dataset$df, dataset$filename, common_cols, foldername = "dd_delaydiscount")
+  prepare_mplus_data(dataset$df, dataset$filename, common_cols)
 })
 
 # Process tvar moderation (logk) datasets
 lapply(tvar_datasets, function(dataset) {
-  prepare_mplus_data(dataset$df, dataset$filename, c(tvar_cols, common_cols), foldername = "dd_delaydiscount")
+  prepare_mplus_data(dataset$df, dataset$filename, c(tvar_cols, common_cols))
 })
 
 # Process tvar moderation (beta) datasets
 lapply(tvar_datasets_beta, function(dataset) {
-  prepare_mplus_data(dataset$df, dataset$filename, c(tvar_cols_beta, common_cols), foldername = "dd_delaydiscount")
+  prepare_mplus_data(dataset$df, dataset$filename, c(tvar_cols_beta, common_cols))
 })
