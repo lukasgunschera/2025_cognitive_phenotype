@@ -1,15 +1,15 @@
-## ============================================================================================== ##
-## Script:    Test-retest posterior predictive performance
-## ============================================================================================== ##
+## ======================================================================================================================= ##
+## Script:    FUNCTION: TEST-RETEST PREDICTIVE PERFORMANCE
+## ======================================================================================================================= ##
 ## Authors:   Lukas J. Gunschera
 ## Date:      Tue Apr 23 17:36:43 2024
-## ============================================================================================== ##
+## ======================================================================================================================= ##
 ## @ predicted_session_data:  data of the sessions to be predicted
 ## @ prediction_parameters:   parameter estimates based on other session
 ## @ prediction:              predictions on subject level parameters (default), or group level?
-## ============================================================================================== ##
+## ======================================================================================================================= ##
 
-## Prediction session a choice data from session b parameters ----------------------------------- ##
+## Prediction session a choice data from session b parameters ------------------------------------------------------------ ##
 retest_predictive_peformance <- function(predicted_session_data,
                                          prediction_parameters,
                                          model = "m3_parabolic",

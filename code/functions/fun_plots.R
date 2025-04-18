@@ -1,156 +1,149 @@
-## ============================================================================================================================ ##
-## Script:    Plot functions
-## ============================================================================================================================ ##
+## ======================================================================================================================= ##
+## Script:    FUNCTION: PLOTS AND VISUALISATIONS
+## ======================================================================================================================= ##
 ## Authors:   Lukas J. Gunschera
 ## Date:      Tue Apr 23 17:35:32 2024
-## ============================================================================================================================ ##
+## ======================================================================================================================= ##
 ## @ task_data:    Task data to generate plot for
 ## @ main_title:   Main title for the generated plot
 ## @ direction:    Plot effort by reward or reward by effort
-## ============================================================================================================================ ##
+## ======================================================================================================================= ##
 
-##============================================================================================================================= ##
-## PLOT DEFAULT THEMES AND ASPECT RATIOS
-## ============================================================================================================================ ##
+## GGPLOT THEMES AND ASPECT RATIOS ==========================================================================================
+# sets default design features for most plots across the project
+
 plot_theme <- ggplot2::theme(
 
   # Axis formatting
-  axis.line    = ggplot2::element_blank(),
-  axis.ticks   = ggplot2::element_line(colour = "#2E2E2E", linetype = 1),
+  axis.line = ggplot2::element_blank(),
+  axis.ticks = ggplot2::element_line(colour = "#2E2E2E", linetype = 1),
   axis.ticks.length.x = unit(0.15, "cm"),
   axis.ticks.length.y = unit(0.15, "cm"),
 
   # Text formatting
-  text         = ggplot2::element_text(size = 12, family = "sans", colour = "#2E2E2E"),
-  title        = ggplot2::element_text(size = 12, family = "sans", colour = "#2E2E2E"),
-  axis.title   = ggplot2::element_text(size = 12, family = "sans", colour = "#2E2E2E"),
-  axis.text    = ggplot2::element_text(size = 12, family = "sans", colour = "#2E2E2E"),
+  text = ggplot2::element_text(size = 12, family = "sans", colour = "#2E2E2E"),
+  title = ggplot2::element_text(size = 12, family = "sans", colour = "#2E2E2E"),
+  axis.title = ggplot2::element_text(size = 12, family = "sans", colour = "#2E2E2E"),
+  axis.text = ggplot2::element_text(size = 12, family = "sans", colour = "#2E2E2E"),
 
 
 
   # Margin formatting
-  plot.margin  = margin(.1, .1, .1, .1, "cm"),
-  axis.text.y  = ggplot2::element_text(margin = unit(c(0.1, 0.1, 0.1, 0.1), "cm")),
-  axis.text.x  = ggplot2::element_text(margin = unit(c(0.1, 0, 0, 0), "cm")),
+  plot.margin = margin(.1, .1, .1, .1, "cm"),
+  axis.text.y = ggplot2::element_text(margin = unit(c(0.1, 0.1, 0.1, 0.1), "cm")),
+  axis.text.x = ggplot2::element_text(margin = unit(c(0.1, 0, 0, 0), "cm")),
 
   # Background formatting
   panel.grid.major = ggplot2::element_blank(),
   panel.grid.minor = ggplot2::element_blank(),
   panel.background = ggplot2::element_blank(),
-  plot.background  = ggplot2::element_rect(fill = "transparent", colour = NA_character_),
-  rect             = ggplot2::element_rect(fill = "transparent"),
+  plot.background = ggplot2::element_rect(fill = "transparent", colour = NA_character_),
+  rect = ggplot2::element_rect(fill = "transparent"),
 
   # Other formatting
-  legend.position  = "none",
+  legend.position = "none",
 )
 
-## Generic plot theme with legend --------------------------------------------------------------------------------------------- ##
+## Generic plot theme with legend -------------------------------------------------------------------------------------------
 plot_theme_legend <- ggplot2::theme(
 
   # Axis formatting
-  axis.line    = ggplot2::element_blank(),
-  axis.ticks   = ggplot2::element_line(colour = "#2E2E2E", linetype = 1),
+  axis.line = ggplot2::element_blank(),
+  axis.ticks = ggplot2::element_line(colour = "#2E2E2E", linetype = 1),
   axis.ticks.length.x = unit(0.15, "cm"),
   axis.ticks.length.y = unit(0.15, "cm"),
 
   # Text formatting
-  text         = ggplot2::element_text(size = 12, family = "sans", colour = "#2E2E2E"),
-  title        = ggplot2::element_text(size = 12, family = "sans", colour = "#2E2E2E"),
-  axis.title   = ggplot2::element_text(size = 12, family = "sans", colour = "#2E2E2E"),
-  axis.text    = ggplot2::element_text(size = 12, family = "sans", colour = "#2E2E2E"),
+  text = ggplot2::element_text(size = 12, family = "sans", colour = "#2E2E2E"),
+  title = ggplot2::element_text(size = 12, family = "sans", colour = "#2E2E2E"),
+  axis.title = ggplot2::element_text(size = 12, family = "sans", colour = "#2E2E2E"),
+  axis.text = ggplot2::element_text(size = 12, family = "sans", colour = "#2E2E2E"),
   legend.title = ggplot2::element_text(size = 12, family = "sans", colour = "#2E2E2E"),
-  legend.text  = ggplot2::element_text(size = 12, family = "sans", colour = "#2E2E2E"),
+  legend.text = ggplot2::element_text(size = 12, family = "sans", colour = "#2E2E2E"),
 
   # Margin formatting
-  plot.margin  = margin(.1, .1, .1, .1, "cm"),
-  axis.text.y  = ggplot2::element_text(margin = unit(c(0.1, 0.1, 0.1, 0.1), "cm")),
-  axis.text.x  = ggplot2::element_text(margin = unit(c(0.1, 0, 0, 0), "cm")),
+  plot.margin = margin(.1, .1, .1, .1, "cm"),
+  axis.text.y = ggplot2::element_text(margin = unit(c(0.1, 0.1, 0.1, 0.1), "cm")),
+  axis.text.x = ggplot2::element_text(margin = unit(c(0.1, 0, 0, 0), "cm")),
 
   # Background formatting
-  panel.grid.major =  ggplot2::element_blank(),
+  panel.grid.major = ggplot2::element_blank(),
   panel.grid.minor = ggplot2::element_blank(),
   panel.background = ggplot2::element_blank(),
-  plot.background  = ggplot2::element_rect(fill = "transparent", colour = NA_character_),
-  rect             = ggplot2::element_rect(fill = "transparent"),
+  plot.background = ggplot2::element_rect(fill = "transparent", colour = NA_character_),
+  rect = ggplot2::element_rect(fill = "transparent"),
 
   # Other formatting
-  legend.position  = "right",
+  legend.position = "right",
 )
 
-## Density plot theme --------------------------------------------------------------------------------------------------------- ##
+## Density plot theme -------------------------------------------------------------------------------------------------------
 dens_theme <- ggplot2::theme(
-  plot.margin = margin(.5,.5,.5,.5, "cm"),
+  plot.margin = margin(.5, .5, .5, .5, "cm"),
   axis.text.y = ggplot2::element_text(margin = unit(c(0.5, 0.5, 0.5, 0.5), "cm"), vjust = .5),
   axis.text.x = ggplot2::element_text(margin = unit(c(0.5, 0, 0, 0), "cm")),
-
   panel.grid.major.y = ggplot2::element_blank(),
   panel.grid.minor = ggplot2::element_blank(),
   panel.background = ggplot2::element_blank(),
-
   axis.line.x = ggplot2::element_line(size = .5, colour = "#2E2E2E", linetype = 1),
   axis.line.y = ggplot2::element_line(size = .5, colour = "#2E2E2E", linetype = 1),
-
   axis.ticks.length.x = unit(-0.1, "cm"),
   axis.ticks.length.y = unit(-0.1, "cm"),
   text = ggplot2::element_text(size = 10),
   axis.title = ggplot2::element_text(size = 10, face = "plain")
 )
 
-## hBayesDM plot themes ======================================================================================================= ##
-trace_theme <-  ggplot2::theme(
-  plot.margin = margin(.5,.5,.5,.5, "cm"),
+## hBayesDM plot themes =====================================================================================================
+trace_theme <- ggplot2::theme(
+  plot.margin = margin(.5, .5, .5, .5, "cm"),
   axis.text.x = ggplot2::element_text(margin = unit(c(0.15, 0, 0, 0), "cm")),
   axis.text.y = ggplot2::element_text(margin = unit(c(0, 0.15, 0, 0), "cm")),
-
   axis.line.x = ggplot2::element_line(size = .35, colour = "#2E2E2E", linetype = 1),
   axis.line.y = ggplot2::element_line(size = .35, colour = "#2E2E2E", linetype = 1),
   axis.ticks = ggplot2::element_line(size = .35, colour = "#2E2E2E", linetype = 1),
-
   axis.ticks.length.x = unit(0.15, "cm"),
   axis.ticks.length.y = unit(0.15, "cm"),
 
   # Text formatting
-  text         = ggplot2::element_text(size = 11, family = "sans", colour = "#2E2E2E"),
-  title        = ggplot2::element_text(size = 11),
-  axis.title   = ggplot2::element_text(size = 11),
-  axis.text    = ggplot2::element_text(size = 10),
+  text = ggplot2::element_text(size = 11, family = "sans", colour = "#2E2E2E"),
+  title = ggplot2::element_text(size = 11),
+  axis.title = ggplot2::element_text(size = 11),
+  axis.text = ggplot2::element_text(size = 10),
   axis.text.x.bottom = ggplot2::element_text(vjust = -.15),
   # Background formatting
-  panel.grid.major =  ggplot2::element_blank(),
+  panel.grid.major = ggplot2::element_blank(),
   panel.grid.minor = ggplot2::element_blank(),
   panel.background = ggplot2::element_blank(),
-  plot.background  = ggplot2::element_rect(fill = "transparent", colour = NA_character_)
+  plot.background = ggplot2::element_rect(fill = "transparent", colour = NA_character_)
 )
 
 dens_theme <- ggplot2::theme(
-  plot.margin = margin(.5,.5,.5,.5, "cm"),
+  plot.margin = margin(.5, .5, .5, .5, "cm"),
   axis.text.x = ggplot2::element_text(margin = unit(c(0.15, 0, 0, 0), "cm")),
   axis.text.y = ggplot2::element_text(margin = unit(c(0, 0.15, 0, 0), "cm")),
-
   axis.line.x = ggplot2::element_line(size = .35, colour = "#2E2E2E", linetype = 1),
   axis.ticks = ggplot2::element_line(size = .35, colour = "#2E2E2E", linetype = 1),
   axis.ticks.length.x = unit(0.15, "cm"),
   legend.position = "none",
 
   # Text formatting
-  text         = ggplot2::element_text(size = 11, family = "sans", colour = "#2E2E2E"),
-  title        = ggplot2::element_text(size = 11),
-  axis.title   = ggplot2::element_text(size = 11),
-  axis.text    = ggplot2::element_text(size = 10),
+  text = ggplot2::element_text(size = 11, family = "sans", colour = "#2E2E2E"),
+  title = ggplot2::element_text(size = 11),
+  axis.title = ggplot2::element_text(size = 11),
+  axis.text = ggplot2::element_text(size = 10),
   axis.text.x.bottom = ggplot2::element_text(vjust = -.15),
   axis.text.y.left = ggplot2::element_blank(),
   # Background formatting
-  panel.grid.major =  ggplot2::element_blank(),
+  panel.grid.major = ggplot2::element_blank(),
   panel.grid.minor = ggplot2::element_blank(),
   panel.background = ggplot2::element_blank(),
-  plot.background  = ggplot2::element_rect(fill = "transparent", colour = NA_character_)
+  plot.background = ggplot2::element_rect(fill = "transparent", colour = NA_character_)
 )
 
 hex_theme <- ggplot2::theme(
-  plot.margin = margin(.5,.5,.5,.5, "cm"),
+  plot.margin = margin(.5, .5, .5, .5, "cm"),
   axis.text.x = ggplot2::element_text(margin = unit(c(0.15, 0, 0, 0), "cm")),
   axis.text.y = ggplot2::element_text(margin = unit(c(0, 0.15, 0, 0), "cm")),
-
   axis.line.x = ggplot2::element_line(size = .35, colour = "#2E2E2E", linetype = 1),
   axis.line.y = ggplot2::element_line(size = .35, colour = "#2E2E2E", linetype = 1),
   axis.ticks = ggplot2::element_line(size = .35, colour = "#2E2E2E", linetype = 1),
@@ -159,30 +152,29 @@ hex_theme <- ggplot2::theme(
   legend.position = "none",
 
   # Text formatting
-  text         = ggplot2::element_text(size = 11, family = "sans", colour = "#2E2E2E"),
-  title        = ggplot2::element_text(size = 11),
-  axis.title   = ggplot2::element_text(size = 11),
-  axis.text    = ggplot2::element_text(size = 10),
+  text = ggplot2::element_text(size = 11, family = "sans", colour = "#2E2E2E"),
+  title = ggplot2::element_text(size = 11),
+  axis.title = ggplot2::element_text(size = 11),
+  axis.text = ggplot2::element_text(size = 10),
 
   # Background formatting
-  panel.grid.major =  ggplot2::element_blank(),
+  panel.grid.major = ggplot2::element_blank(),
   panel.grid.minor = ggplot2::element_blank(),
   panel.background = ggplot2::element_blank(),
-  plot.background  = ggplot2::element_rect(fill = "transparent", colour = NA_character_)
+  plot.background = ggplot2::element_rect(fill = "transparent", colour = NA_character_)
 )
 
-## Initialise default aspect ratio options ------------------------------------------------------------------------------------ ##
-aspect_ratio_wide     <- ggplot2::theme(aspect.ratio = 1/2)
+## Initialise default aspect ratio options ----------------------------------------------------------------------------------
+aspect_ratio_wide <- ggplot2::theme(aspect.ratio = 1 / 2)
 
-aspect_ratio_narrow   <- ggplot2::theme(aspect.ratio = 1.5/1)
+aspect_ratio_narrow <- ggplot2::theme(aspect.ratio = 1.5 / 1)
 
-aspect_ratio_square   <- ggplot2::theme(aspect.ratio = 1/1)
+aspect_ratio_square <- ggplot2::theme(aspect.ratio = 1 / 1)
 
-aspect_ratio_balanced <- ggplot2::theme(aspect.ratio = 1/1.5)
+aspect_ratio_balanced <- ggplot2::theme(aspect.ratio = 1 / 1.5)
 
-## ============================================================================================================================ ##
-## HBAYESDM MODEL RESULT PLOTS
-## ============================================================================================================================ ##
+## PLOT: HBAYESDM MODEL RESULTS =============================================================================================
+
 create_trace_plot <- function(fit, index) {
   plot <- bayesplot::mcmc_trace(fit$post_warmup_draws) +
     trace_theme +
@@ -190,9 +182,10 @@ create_trace_plot <- function(fit, index) {
     expand_limits(y = 0, x = 0)
 
   ggsave(plot,
-         path = here::here("output", "lcid", "dd_delaydiscount", "images", "01_modelfit"),
-         filename = paste0("ggt", index, ".png"),
-         dpi = 1200, device = "png")
+    path = here::here("output", "lcid", "dd_delaydiscount", "images", "01_modelfit"),
+    filename = paste0("ggt", index, ".png"),
+    dpi = 1200, device = "png"
+  )
 
   return(plot)
 }
@@ -208,16 +201,16 @@ create_density_plot <- function(fit, index) {
     facet_text(on = TRUE)
 
   ggsave(plot,
-         path = here::here("output", "lcid", "dd_delaydiscount", "images", "01_modelfit"),
-         filename = paste0("ggd", index, ".png"),
-         dpi = 1200, device = "png")
+    path = here::here("output", "lcid", "dd_delaydiscount", "images", "01_modelfit"),
+    filename = paste0("ggd", index, ".png"),
+    dpi = 1200, device = "png"
+  )
 
   return(plot)
 }
 
-##============================================================================================================================= ##
-## FUNCTION TO VISUALISE DATA
-## ============================================================================================================================ ##
+## PLOT: CHOICE FUNCTIONS ===================================================================================================
+
 choice_plot <- function(task_dat) {
   require(ggplot2)
   require(ggpubr)
@@ -254,9 +247,7 @@ choice_plot <- function(task_dat) {
   return(choice_plot)
 }
 
-##============================================================================================================================= ##
-## RAINCLOUD PLOT
-## ============================================================================================================================ ##
+## PLOT: RAINCLOUD ==========================================================================================================
 # @ dat: Data to plot
 # @ title: Main title for the generated plot
 # @ xlab: x axis label (when direction = horizontal this will be the y axis)
@@ -269,7 +260,6 @@ choice_plot <- function(task_dat) {
 # @ include_grouping: plot grouping variable?
 # @ group_var: (if include_grouping is TRUE) name of grouping variable
 # @ legendlab: (if include_grouping is TRUE) title of group legend
-## ============================================================================================================================ ##
 
 raincloud_plot <- function(dat, title, xlab, ylab,
                            predictor_var, outcome_var,
@@ -332,9 +322,7 @@ raincloud_plot <- function(dat, title, xlab, ylab,
   rain_plot
 }
 
-##============================================================================================================================= ##
-## CUMULATIVE LAG PLOT
-## ============================================================================================================================ ##
+## PLOT: PCUMULATIVE LAGS ===================================================================================================
 
 cum_plot <- function(dat, var_labels, title,
                      x_label, y_label, y_lim, col, shape = 1) {
@@ -378,15 +366,12 @@ cum_plot <- function(dat, var_labels, title,
   cum_plot
 }
 
-##============================================================================================================================= ##
-## POSTERIOR PREDICTIVE CHECK PLOT
-## ============================================================================================================================ ##
+## PLOT: POSTERIOR PREDICTIVE CHECKS ========================================================================================
 # @ ppc_dat: PPC data to visualize (output from "posterior_predictions" function)
 # @ group_plot: Group level plot (compares observed and predicted group-level
 # acceptance proportions per effort and reward level)?
 # @ indiv_plot: Individual level plot (observed vs. predicted acceptance
 # proportions on a subject level for each effort and reward level)?
-## ============================================================================================================================ ##
 
 ppc_plots <- function(ppc_dat,
                       group_plot = TRUE,
@@ -462,7 +447,8 @@ ppc_plots <- function(ppc_dat,
         ) +
         scale_fill_viridis_d(labels = c(
           "Predicted", "Predicted", "Predicted", "Predicted",
-          "Observed", "Observed", "Observed", "Observed")) +
+          "Observed", "Observed", "Observed", "Observed"
+        )) +
         ylab("% Accepted") +
         xlab("Effort level") +
         ggtitle(paste("Reward Level", i)) +
@@ -582,11 +568,8 @@ ppc_plots <- function(ppc_dat,
   return(res_plots)
 }
 
-##============================================================================================================================= ##
-## Posterior Predictive Correlation plots
-## ============================================================================================================================ ##
+## POSTERIOR PREDICTIVE CORRELATIONS =========================================================================================
 # @ ppc_data: tibble with posterior predictive accuracy averaged for trial types (delays)
-## ============================================================================================================================ ##
 
 ppc_plot <- function(ppc_data, jitter_amount = 0.05) {
   # Custom jitter function that respects bounds
@@ -597,12 +580,12 @@ ppc_plot <- function(ppc_data, jitter_amount = 0.05) {
       if (val >= 0.5) {
         # For points above 0.5, primarily jitter downward
         max_up <- amount * (1 - val) # reduces jitter as we approach 1
-        max_down <- amount * val     # allows more downward jitter
+        max_down <- amount * val # allows more downward jitter
         runif(1, min = -max_down, max = max_up)
       } else {
         # For points below 0.5, primarily jitter upward
-        max_up <- amount * (1 - val)  # allows more upward jitter
-        max_down <- amount * val      # reduces jitter as we approach 0
+        max_up <- amount * (1 - val) # allows more upward jitter
+        max_down <- amount * val # reduces jitter as we approach 0
         runif(1, min = -max_down, max = max_up)
       }
     })
@@ -610,53 +593,69 @@ ppc_plot <- function(ppc_data, jitter_amount = 0.05) {
   }
 
   ppc_data %>%
-    ggplot(aes(x = mean_pred_choice,
-               y = bounded_jitter(mean_real_choice, jitter_amount))) +
-    geom_point(shape = 20,
-               aes(colour = abs(hdi_upper_pred_choice - hdi_lower_pred_choice)),
-               position = position_jitter(width = jitter_amount),
-               size = 2,
-               alpha = .75) +
-    geom_smooth(method = "lm",
-                color = "#2E2E2E",
-                fullrange = TRUE) +
+    ggplot(aes(
+      x = mean_pred_choice,
+      y = bounded_jitter(mean_real_choice, jitter_amount)
+    )) +
+    geom_point(
+      shape = 20,
+      aes(colour = abs(hdi_upper_pred_choice - hdi_lower_pred_choice)),
+      position = position_jitter(width = jitter_amount),
+      size = 2,
+      alpha = .75
+    ) +
+    geom_smooth(
+      method = "lm",
+      color = "#2E2E2E",
+      fullrange = TRUE
+    ) +
     stat_poly_eq(use_label(c("R2")),
-                 label.y = 0.85,
-                 size = 4,
-                 colour = "#2E2E2E",
-                 parse = TRUE,
-                 position = "identity") +
+      label.y = 0.85,
+      size = 4,
+      colour = "#2E2E2E",
+      parse = TRUE,
+      position = "identity"
+    ) +
     plot_theme +
     aspect_ratio_square +
-    scale_colour_viridis(name = "Imprecision",
-                         direction = 1,
-                         limits = c(0, 1),
-                         breaks = seq(0, 1, .5)) +
-    scale_x_continuous(breaks = seq(0, 1, .5),
-                       expand = c(0.025, 0.025),
-                       limits = c(0, 1)) +
-    scale_y_continuous(breaks = seq(0, 1, .5),
-                       expand = c(0.05, 0.05),
-                       limits = c(0, 1)) +
-    theme(legend.title = element_text(margin = margin(b = 10, r = 5), size = 10),
-          legend.text = element_text(size = 10),
-          text = element_text(size = 10),
-          axis.text = element_text(size = 10),
-          axis.title = element_text(size = 10)) +
+    scale_colour_viridis(
+      name = "Imprecision",
+      direction = 1,
+      limits = c(0, 1),
+      breaks = seq(0, 1, .5)
+    ) +
+    scale_x_continuous(
+      breaks = seq(0, 1, .5),
+      expand = c(0.025, 0.025),
+      limits = c(0, 1)
+    ) +
+    scale_y_continuous(
+      breaks = seq(0, 1, .5),
+      expand = c(0.05, 0.05),
+      limits = c(0, 1)
+    ) +
+    theme(
+      legend.title = element_text(margin = margin(b = 10, r = 5), size = 10),
+      legend.text = element_text(size = 10),
+      text = element_text(size = 10),
+      axis.text = element_text(size = 10),
+      axis.title = element_text(size = 10)
+    ) +
     labs(x = "Predicted choice", y = "Observed choice") +
-    annotate(x = -Inf, xend = -Inf, y = 0, yend = 1,
-             colour = "#2E2E2E", lwd = 0.75, geom = "segment") +
-    annotate(x = 0, xend = 1, y = -Inf, yend = -Inf,
-             colour = "#2E2E2E", lwd = 0.75, geom = "segment")
+    annotate(
+      x = -Inf, xend = -Inf, y = 0, yend = 1,
+      colour = "#2E2E2E", lwd = 0.75, geom = "segment"
+    ) +
+    annotate(
+      x = 0, xend = 1, y = -Inf, yend = -Inf,
+      colour = "#2E2E2E", lwd = 0.75, geom = "segment"
+    )
 }
 
-##============================================================================================================================= ##
-## PARAMETER RECOVERY PLOT
-## ============================================================================================================================ ##
+## PARAMETER RECOVERY =======================================================================================================
 # @ recovery_data: tibble with underlying and recovered parameter values
 # @ plot_title: title for plot
 # @ col: color to use
-## ============================================================================================================================ ##
 
 params_recovery_plot <- function(recovery_data,
                                  plot_title,
@@ -687,12 +686,8 @@ params_recovery_plot <- function(recovery_data,
   return(params_recovery_plot)
 }
 
-##============================================================================================================================= ##
-## DROP LEADING ZEROS FOR LABELS
-## ============================================================================================================================ ##
+## DROP LEADING ZEROES FOR LABELS ===========================================================================================
 
-drop_leading_zeros <- function(l){
-  stringr::str_replace(l, '0(?=.)', '')
+drop_leading_zeros <- function(l) {
+  stringr::str_replace(l, "0(?=.)", "")
 }
-
-

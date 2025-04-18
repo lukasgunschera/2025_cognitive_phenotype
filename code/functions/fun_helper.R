@@ -1,6 +1,12 @@
-################################################################################
-###############---------------- HELPER FUNCTIONS ----------------###############
-################################################################################
+## ======================================================================================================================= ##
+## Script:    FUNCTION: MISCELLANEOUS HELPER FUNCTIONS
+## ======================================================================================================================= ##
+## Authors:   Lukas J. Gunschera
+## Date:      Thu Mar 27 14:30:27 2025
+## ======================================================================================================================= ##
+##
+## ======================================================================================================================= ##
+
 
 ### Helper functions used in subsequent functions and code
 
@@ -22,20 +28,22 @@ subset_x_participants <- function(data, fit_cluster, participants) {
 # subset_three_participants(dd_data[[1]], FIT_CLUSTER)
 # selects the first three unique subjID identifiers and extract an object
 
-## Add sample function -------------------------------------------------------------------------------------------------------- ##
-add_sample <- function(x){
-  return(c(y = max(x) + .025,
-           label = length(x)))
+## Add sample function ------------------------------------------------------------------------------------------------------
+add_sample <- function(x) {
+  return(c(
+    y = max(x) + .025,
+    label = length(x)
+  ))
 }
 
-## Population standard deviation -----------------------------------------------
+## Population standard deviation --------------------------------------------------------------------------------------------
 # @ x: A numerical vector of values
 
-sdP <- function(x){
+sdP <- function(x) {
   sqrt(mean(x^2) - (mean(x))^2)
 }
 
-## Reverse code questionnaire items ------------------------------------------------------------- ##
+## Reverse code questionnaire items -----------------------------------------------------------------------------------------
 # @ x: Column or column vector
 reverse_code <- function(x) {
   f <- factor(x)
@@ -44,21 +52,20 @@ reverse_code <- function(x) {
   return(y)
 }
 
-## Standard error --------------------------------------------------------------
+## Standard error -----------------------------------------------------------------------------------------------------------
 # @ x: A numerical vector of values
 
 se <- function(x) sqrt(var(x) / length(x))
 
-## Mode ------------------------------------------------------------------------
+## Mode ---------------------------------------------------------------------------------------------------------------------
 # @ x: A numerical vector of values
 
 getmode <- function(x) {
   uniqX <- unique(x)
   uniqX[which.max(tabulate(match(x, uniqX)))]
-
 }
 
-## Participant wise maximum trial calculation ---------------------------------------------------
+## Participant wise maximum trial calculation -------------------------------------------------------------------------------
 # alterantive to stats::aggregate, due to different ordering algorithms
 
 max_trial_per_subjID <- function(task_data) {
@@ -73,32 +80,32 @@ max_trial_per_subjID <- function(task_data) {
   max_trials
 }
 
-## Task data standardization ---------------------------------------------------
-#@ x: A numerical vector of values
-#@ ref: A single numerical values to be used as the reference
-#@ levels: Possible values the data to be standardized can take
+## Task data standardization ------------------------------------------------------------------------------------------------
+# @ x: A numerical vector of values
+# @ ref: A single numerical values to be used as the reference
+# @ levels: Possible values the data to be standardized can take
 
-standardization <- function(x, ref = 0, levels = 1:4){
+standardization <- function(x, ref = 0, levels = 1:4) {
   (x - ref) / sdP(levels)
 }
 
 
-## Scale variables to 0-1 ---------------------------------------------------------
-#@ x: Variable vector
+## Scale variables to 0-1 ---------------------------------------------------------------------------------------------------
+# @ x: Variable vector
 
-rescale <- function(x){
-  (x-min(x, na.rm = TRUE)) / (max(x, na.rm = TRUE)-min(x, na.rm = TRUE))
+rescale <- function(x) {
+  (x - min(x, na.rm = TRUE)) / (max(x, na.rm = TRUE) - min(x, na.rm = TRUE))
 }
 
 
-## Normalize negatively skewed data ---------------------------------------------------------
-#@ x: Variable vector
+## Normalize negatively skewed data -----------------------------------------------------------------------------------------
+# @ x: Variable vector
 
-norm_neg_skew <- function(x){
+norm_neg_skew <- function(x) {
   (1 - sqrt(1 - x))
 }
 
-## Remove High NA Columns (default = 90%) ------------------------------------------------------------------------------------- ##
+## Remove High NA Columns (default = 90%) -----------------------------------------------------------------------------------
 remove_high_na_columns <- function(df, threshold = 0.90) {
   # Calculate the proportion of NA values in each column
   na_proportion <- sapply(df, function(x) mean(is.na(x)))
@@ -121,11 +128,10 @@ remove_high_na_columns <- function(df, threshold = 0.90) {
 ppc_correlate <- function(data, dataset_name) {
   data %>%
     group_by() %>%
-    summarise(correlation = cor(mean_pred_choice, mean_real_choice),
-              hdi_lower = mean(hdi_lower_pred_choice),
-              hdi_upper = mean(hdi_upper_pred_choice)) %>%
+    summarise(
+      correlation = cor(mean_pred_choice, mean_real_choice),
+      hdi_lower = mean(hdi_lower_pred_choice),
+      hdi_upper = mean(hdi_upper_pred_choice)
+    ) %>%
     mutate(dataset = dataset_name)
 }
-
-
-

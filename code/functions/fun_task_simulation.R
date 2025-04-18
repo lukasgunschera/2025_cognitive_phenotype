@@ -1,14 +1,15 @@
-## ============================================================================================================================ ##
-## Script:    SIMULATE DATASET FOR PARAMETER RECOVERY
-## ============================================================================================================================ ##
+## ======================================================================================================================= ##
+## Script:    FUNCTION: SIMULATE DATASET FOR PARAMETER RECOVERY
+## ======================================================================================================================= ##
 ## Authors:   Lukas J. Gunschera
 ## Date:      Mon Jul  1 17:37:49 2024
-## ============================================================================================================================ ##
+## ======================================================================================================================= ##
 ##
-## ============================================================================================================================ ##
+## ======================================================================================================================= ##
 
 dd_task_simulation <- function(discounting_rates, inverse_temperatures, n_participants) {
-  ## Initialise Parameters and Objects ====================================================================================== ##
+
+  ## Initialise Parameters and Objects ======================================================================================
   k <- discounting_rates # initialise vector of discounting rates (k)
   beta <- inverse_temperatures # initialise vector of inverse temperatures (beta)
   n_par <- n_participants # indicate number of participants
@@ -35,7 +36,7 @@ dd_task_simulation <- function(discounting_rates, inverse_temperatures, n_partic
     beta          = numeric()
   )
 
-  ## Global Parameters ------------------------------------------------------------------------------------------------------ ##
+  ## Global Parameters ------------------------------------------------------------------------------------------------------
   increments_env <- 0.5 # increment size in adjustment algorithm
   standard_amount_env <- 10 # standard (later) reward
   delays_env <- c(2, 30, 180, 365) # potential delays of later reward
@@ -46,7 +47,7 @@ dd_task_simulation <- function(discounting_rates, inverse_temperatures, n_partic
   converged_env <- FALSE # convergence defaults to false
   trial_max_env <- 166 # maximum number of trials for participant
 
-  ## Participant Loop ======================================================================================================= ##
+  ## Participant Loop =======================================================================================================
   for (pp in 1:n_par) {
     # initialise agent tibble for storing trial data
     agent_dat <- tibble(
@@ -79,16 +80,16 @@ dd_task_simulation <- function(discounting_rates, inverse_temperatures, n_partic
     converged_full <- FALSE # convergence of all delay types defaults to false
     t_idx <- 0 # trial index, starting at 0
 
-    ## Trial Loop =========================================================================================================== ##
+    ## Trial Loop ===========================================================================================================
     while (!converged_full) {
       t_idx <- t_idx + 1
 
-      ## Select Offer ------------------------------------------------------------------------------------------------------- ##
+      ## Select Offer -------------------------------------------------------------------------------------------------------
       f <- 1 / increments_env
       v <- base::floor(f * (trial_matrix$maxTop - trial_matrix$maxBot - 2 * increments_env) * runif(1) + .5) / f
       amount_sooner_trial <- trial_matrix$maxBot + 1 * increments_env + v
 
-      ## Select Question ---------------------------------------------------------------------------------------------------- ##
+      ## Select Question ----------------------------------------------------------------------------------------------------
       if (sum(trial_matrix$converged) < 3) { # 2+ options to sample from
 
         trial <- trial_matrix %>%
@@ -128,15 +129,15 @@ dd_task_simulation <- function(discounting_rates, inverse_temperatures, n_partic
       # populate agent_trial tibble with current trial's data
       agent_trial <- agent_dat %>% filter(trial == t_idx)
 
-      ## Choice Utility ---------------------------------------------------=------------------------------------------------- ##
+      ## Choice Utility ---------------------------------------------------=-------------------------------------------------
       su_later <- agent_trial$amount_later / (1 + k[pp] * agent_trial$delay_later)
       su_sooner <- agent_trial$amount_sooner / (1 + k[pp] * agent_trial$delay_sooner)
       su_trial <- su_later - su_sooner
 
-      ## Choice Probability ------------------------------------------------------------------------------------------------- ##
+      ## Choice Probability -------------------------------------------------------------------------------------------------
       prob_later <- 1 / (1 + exp(-beta[pp] * (su_trial)))
 
-      ## Simulate Behaviour ------------------------------------------------------------------------------------------------- ##
+      ## Simulate Behaviour -------------------------------------------------------------------------------------------------
       agent_trial %<>%
         mutate(
           su = su_trial,
@@ -148,7 +149,7 @@ dd_task_simulation <- function(discounting_rates, inverse_temperatures, n_partic
           maxTop = trial_matrix$maxTop[matrix_idx]
         )
 
-      ## Update algorithm parameters ---------------------------------------------------------------------------------------- ##
+      ## Update algorithm parameters ----------------------------------------------------------------------------------------
       if (agent_trial$choice == 0) { # agent chose variable/sooner option
 
         if (agent_trial$amount_sooner > agent_trial$minTop) { # amount > lower upper bound
@@ -184,12 +185,12 @@ dd_task_simulation <- function(discounting_rates, inverse_temperatures, n_partic
           maxTop = ifelse(trial == t_idx, agent_trial$maxTop, maxTop) # upper upper bound
         )
 
-      ## Converge trial when bound differences is smaller/equal to algorithm increments ------------------------------------- ##
+      ## Converge trial when bound differences is smaller/equal to algorithm increments -------------------------------------
       if (abs(agent_trial$maxTop - agent_trial$maxBot) <= increments_env) {
         trial_matrix[matrix_idx, ]$converged <- TRUE
       }
 
-      ## Converge all if maximum trial number is reached -------------------------------------------------------------------- ##
+      ## Converge all if maximum trial number is reached --------------------------------------------------------------------
       if (t_idx == trial_max_env) {
         trial_matrix[1, ]$converged <- TRUE
         trial_matrix[2, ]$converged <- TRUE
@@ -200,7 +201,7 @@ dd_task_simulation <- function(discounting_rates, inverse_temperatures, n_partic
       # set converged_full to true if all trial types have converged
       converged_full <- trial_matrix %>% summarise(convergence_full = all(converged))
 
-      ## Save agent's results ----------------------------------------------------------------------------------------------- ##
+      ## Save agent's results -----------------------------------------------------------------------------------------------
       if (converged_full %>% pull()) {
         simu_results %<>%
           add_row(agent_dat)

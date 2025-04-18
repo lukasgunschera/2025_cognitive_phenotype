@@ -1,5 +1,5 @@
 ## ============================================================================================================================ ##
-## Script:    Posterior predictive check function
+## Script:    FUNCTION: POSTERIOR PREDICTIVE CHECK
 ## ============================================================================================================================ ##
 ## Authors:   Lukas J. Gunschera
 ## Date:      Mon Jul  8 16:05:36 2024
@@ -27,11 +27,10 @@ posterior_predictions <- function(model_fit,
                                   n_subj,
                                   n_trials,
                                   real_dat) {
-
   pred_var_names <- as.vector(
-    sapply(1:n_subj, function(i)
+    sapply(1:n_subj, function(i) {
       sapply(1:n_trials, function(j) paste0("y_pred[", i, ",", j, "]"))
-    )
+    })
   )
 
   # Extract posterior draws for all specified variables
@@ -39,7 +38,6 @@ posterior_predictions <- function(model_fit,
 
   # Create a list to store results for each subject
   ppc_subj_list <- lapply(1:n_subj, function(id) {
-
     s_trials <- real_dat$Tsubj[id]
 
     # Extract relevant columns for the current subject
@@ -49,15 +47,17 @@ posterior_predictions <- function(model_fit,
     pred_means <- colMeans(subj_draws)
     pred_hdi <- apply(subj_draws, 2, HDIofMCMC)
 
-    tibble(subj = id,
-           real_delay_sooner = real_dat$delay_sooner[id, 1:s_trials],
-           real_amount_sooner = real_dat$amount_sooner[id, 1:s_trials],
-           real_delay_later = real_dat$delay_later[id, 1:s_trials],
-           real_amount_later = real_dat$amount_later[id, 1:s_trials],
-           real_choice = real_dat$choice[id, 1:s_trials],
-           pred_choice = pred_means[1:s_trials],
-           pred_hdi_upper = pred_hdi[1, 1:s_trials],
-           pred_hdi_lower = pred_hdi[2, 1:s_trials])
+    tibble(
+      subj = id,
+      real_delay_sooner = real_dat$delay_sooner[id, 1:s_trials],
+      real_amount_sooner = real_dat$amount_sooner[id, 1:s_trials],
+      real_delay_later = real_dat$delay_later[id, 1:s_trials],
+      real_amount_later = real_dat$amount_later[id, 1:s_trials],
+      real_choice = real_dat$choice[id, 1:s_trials],
+      pred_choice = pred_means[1:s_trials],
+      pred_hdi_upper = pred_hdi[1, 1:s_trials],
+      pred_hdi_lower = pred_hdi[2, 1:s_trials]
+    )
   })
 
   # Add HDIs for estimations
