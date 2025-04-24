@@ -72,7 +72,7 @@ dd_data <- readRDS(here::here("data", "processed", "dd_task.Rds")) # task data l
 
 # @k = discounting rate
 # @beta = inverse temperature
-# FIT_ALLDATA == FALSE == subset three subjects from dataframe to illustrate modeling procedure
+# FIT_ALLDATA == FALSE == subset five subjects from dataframe to illustrate modeling procedure
 # FIT_ALLDATA == TRUE  == use entire dataset and continue with full modeling procedure
 
 task_data_02 <- subset_x_participants(dd_data[[1]], FIT_ALLDATA, participants = 5)
