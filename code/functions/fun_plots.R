@@ -182,7 +182,7 @@ create_trace_plot <- function(fit, index) {
     expand_limits(y = 0, x = 0)
 
   ggsave(plot,
-    path = here::here("output", "lcid", "dd_delaydiscount", "images", "01_modelfit"),
+    path = here::here("output", "lcid", "dd_delaydiscount", "images", "modelfit"),
     filename = paste0("ggt", index, ".png"),
     dpi = 1200, device = "png"
   )
@@ -201,7 +201,7 @@ create_density_plot <- function(fit, index) {
     facet_text(on = TRUE)
 
   ggsave(plot,
-    path = here::here("output", "lcid", "dd_delaydiscount", "images", "01_modelfit"),
+    path = here::here("output", "lcid", "dd_delaydiscount", "images", "modelfit"),
     filename = paste0("ggd", index, ".png"),
     dpi = 1200, device = "png"
   )
