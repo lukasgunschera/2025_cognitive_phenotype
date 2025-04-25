@@ -179,10 +179,11 @@ create_trace_plot <- function(fit, index) {
   plot <- bayesplot::mcmc_trace(fit$post_warmup_draws) +
     trace_theme +
     aspect_ratio_balanced +
-    expand_limits(y = 0, x = 0)
+    expand_limits(y = 0, x = 0) +
+    scale_x_continuous(limits = c(0, 10000), breaks = seq(0, 10000, 5000))
 
   ggsave(plot,
-    path = here::here("output", "lcid", "dd_delaydiscount", "images", "modelfit"),
+    path = here::here("output", "images", "modelfit"),
     filename = paste0("ggt", index, ".png"),
     dpi = 1200, device = "png"
   )
@@ -201,7 +202,7 @@ create_density_plot <- function(fit, index) {
     facet_text(on = TRUE)
 
   ggsave(plot,
-    path = here::here("output", "lcid", "dd_delaydiscount", "images", "modelfit"),
+    path = here::here("output", "images", "modelfit"),
     filename = paste0("ggd", index, ".png"),
     dpi = 1200, device = "png"
   )

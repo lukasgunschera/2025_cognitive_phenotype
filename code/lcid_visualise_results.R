@@ -1851,46 +1851,6 @@ ggplot2::ggsave(hscs_eatq_dens,
                 height = 5, width = 10
 )
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 #### PLOT: Simulated visualisation for hyperbolic model (k)  ----------------------------------------------------------------
 
 # create a new tibble with the desired rows

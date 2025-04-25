@@ -235,6 +235,36 @@ if (FIT_MODEL) {
   # create and save trace plots
   trace_plots <- purrr::imap(model_fits_tot, create_trace_plot)
 
+  tp2 <- trace_plots[[1]] + theme(axis.title.x = element_blank(), axis.title.y = element_text(face = "bold"))
+  tp3 <- trace_plots[[2]] + theme(axis.title.x = element_blank(), axis.title.y = element_text(face = "bold"))
+  tp4 <- trace_plots[[3]] + theme(axis.title.x = element_blank(), axis.title.y = element_text(face = "bold"))
+  tp5 <- trace_plots[[4]] + theme(axis.title.x = element_blank(), axis.title.y = element_text(face = "bold"))
+  tp6 <- trace_plots[[5]] + theme(axis.title.x = element_blank(), axis.title.y = element_text(face = "bold"))
+
+  trace_arrange <- ggpubr::ggarrange(
+    tp2,
+    tp3,
+    tp4,
+    tp5,
+    tp6,
+    ncol = 3, nrow = 2,
+    heights = c(.5, .5, .5, .5, .5),
+    widths = c(1, 1, 1, 1, 1),
+    labels = c("A", "B", "C", "D", "E", ""), label.y = .725,
+    common.legend = TRUE, legend = "bottom",
+    font.label = list(size = 11, face = "bold"),
+    vjust = -1.5
+
+  )
+
+  ggsave(trace_arrange,
+         path = here::here("output", "images", "modelfit"),
+         filename = "trace_plots.png",
+         dpi = 1000, device = "png"
+  )
+
+
+
   # Create and save density plots
   density_plots <- purrr::imap(model_fits_tot, create_density_plot)
 } else {
