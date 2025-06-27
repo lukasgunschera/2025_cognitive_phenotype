@@ -236,6 +236,13 @@ p_sm <- ddtvar_long %>%
 # print with more digits
 print.data.frame(p_sm, digits = 5); base::remove(p_sm)
 
+# get response proportions
+answer_counts <- table(ddtvar_long$sm_postandscroll, useNA = "no")
+
+# calculate percentages
+answer_percentages <- prop.table(answer_counts) * 100
+round(answer_percentages, 3)
+
 #### Compulsive internet use scale ------------------------------------------------------------------------------------------
 
 p_cius <- ddtvar_long %>%
