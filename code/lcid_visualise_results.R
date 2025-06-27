@@ -419,10 +419,13 @@ MuMIn::r.squaredGLMM(sm_ps_age)
 pred <- ggeffects::ggpredict(sm_ps_age, terms = "age")
 print(pred, digits = 4)
 
-#### Compulsive Internet Use ~ age --------------------------------------------------------------------------------------
+#### Compulsive Internet Use ~ age ------------------------------------------------------------------------------------------
 
 cius_ps_age <- lmerTest::lmer(cius_total ~ age + (1 | subjID), data = ddtvar_long)
 std_coef_cius <- effectsize::standardize_parameters(cius_ps_age, method = "refit")
+
+# extract degrees of freedom
+summary(cius_ps_age)$coefficients[, "df"]
 
 # examine results and standardised coefficients
 print(summary(cius_ps_age), digits = 5)
@@ -509,12 +512,14 @@ std_coef <- effectsize::standardize_parameters(lmer_logk_age, method = "refit")
 print(summary(lmer_logk_age), digits = 8)
 print(std_coef, digits = 5)
 
+# extract degrees of freedom
+summary(cius_ps_age)$coefficients[, "df"]
+
 # get R square
 MuMIn::r.squaredGLMM(lmer_logk_age)
 
 # get predicted behaviour
 pred <- ggeffects::ggpredict(lmer_logk_age, terms = "age")
-
 
 ### Proportion of offers accepted ~ Delay discounting -----------------------------------------------------------------------
 
@@ -555,6 +560,9 @@ std_coef <- effectsize::standardize_parameters(lmer_logk_cius, method = "refit")
 # examine results and standardised coefficients
 print(summary(lmer_logk_cius), digits = 5)
 print(std_coef, digits = 5)
+
+# extract degrees of freedom
+summary(cius_ps_age)$coefficients[, "df"]
 
 # get R square
 MuMIn::r.squaredGLMM(lmer_logk_cius)
@@ -2855,3 +2863,4 @@ ggplot2::ggsave(dd_sm_beta_dens,
   path = here::here("output", "images"),
   filename = "dd_sm_beta_dens.png", dpi = 1200, device = "png"
 )
+
