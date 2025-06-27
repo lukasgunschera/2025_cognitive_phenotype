@@ -569,7 +569,7 @@ ppc_plots <- function(ppc_dat,
   return(res_plots)
 }
 
-## POSTERIOR PREDICTIVE CORRELATIONS =========================================================================================
+## POSTERIOR PREDICTIVE CORRELATIONS ========================================================================================
 # @ ppc_data: tibble with posterior predictive accuracy averaged for trial types (delays)
 
 ppc_plot <- function(ppc_data, jitter_amount = 0.05) {
