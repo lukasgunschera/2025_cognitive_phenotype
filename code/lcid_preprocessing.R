@@ -246,9 +246,17 @@ process_questionnaires <- function(df) {
 
   #### CIUS scale -----------------------------------------------------------------------------------------------------------
 
-  df %<>%
-    dplyr::mutate(cius_total = rowSums(dplyr::select(., dplyr::contains("_SocialMedia_C")), na.rm = FALSE)) %>%
-    dplyr::mutate(cius_total = ifelse(cius_total == 0, NA, cius_total))
+  if(wave_value != 7 ){
+    df %<>%
+      dplyr::mutate(cius_total = rowSums(dplyr::select(., dplyr::contains("_SocialMedia_C")), na.rm = FALSE)) %>%
+      dplyr::mutate(cius_total = ifelse(cius_total == 0, NA, cius_total))
+    } else {
+
+      df %<>%
+        dplyr::mutate(cius_total = rowSums(
+          dplyr::select(., dplyr::contains("_Media_Q15") | dplyr::contains("_Media_Q16")), na.rm = FALSE)) %>%
+        dplyr::mutate(cius_total = ifelse(cius_total == 0, NA, cius_total))
+  }
 
   #### Social media measures ------------------------------------------------------------------------------------------------
 
