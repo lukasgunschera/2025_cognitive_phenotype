@@ -385,10 +385,10 @@ gg_age_choice <- dd_dat_df %>%
   ggplot2::ggplot(., aes(x = age, y = prop, color = choice)) +
   geom_point(alpha = .5, shape = 16, stroke = .4, size = 2, position = position_jitter(seed = 1, width = .1)) +
   geom_smooth(method = "loess", se = TRUE) +
-  scale_colour_viridis_d(begin = 0, end = .95, labels = c("Later", "Sooner")) +
+  scale_colour_viridis_d(begin = .1, end = .8, labels = c("Later", "Sooner"), option = "C") +
   plot_theme_legend +
   aspect_ratio_balanced +
-  labs(x = "Child age", y = "Proportion of Choice", color = "Choice") +
+  labs(x = "Child age", y = "Proportion of choice", color = "Choice") +
   scale_x_continuous(
     breaks = seq(8, 15, 1), expand = c(0.04, 0),
     limits = c(dd_dat_df %>% filter(!is.na(prop)) %>% select(age) %>% min(.), 15)
@@ -1948,15 +1948,19 @@ dd_choice_logk <- dd_choice %>%
   theme(element_text(size = 4)) +
   scale_x_continuous(limits = c(0, 12), breaks = seq(0, 12, by = 3)) +
   scale_fill_viridis_d(
-    end = 1, direction = -1,
-    name = "Choice",
-    labels = c("Sooner", "Later")
-  ) +
-  scale_colour_viridis_d(
-    end = 1, direction = -1,
+    direction = -1,
     name = "Choice",
     labels = c("Sooner", "Later"),
-    guide = "legend"
+    option = "B",
+    begin = .2, end = .8
+  ) +
+  scale_colour_viridis_d(
+    direction = -1,
+    name = "Choice",
+    labels = c("Sooner", "Later"),
+    guide = "legend",
+    option = "B",
+    begin = .2, end = .8
   ) +
   guides(color = guide_legend(override.aes = list(linetype = "blank", shape = NA))) +
   annotate(x = -Inf, xend = -Inf, y = 0, yend = 1, colour = "#2E2E2E", lwd = 0.5, geom = "segment") +
@@ -1967,6 +1971,20 @@ ggplot2::ggsave(dd_choice_logk,
   path = here::here("output", "images"),
   filename = "logk_choice.png", dpi = 1200, device = "png"
 )
+
+# create merge plot of age and choice distributions
+pubr_leg <- ggpubr::get_legend(dd_choice_logk)
+
+gg_age_noleg <- dd_choice_logk + theme(legend.position = "none")
+gg_choice_noleg <- gg_age_choice + theme(legend.position = "none")
+
+p_age_choice_merged <- ggpubr::ggarrange(plotlist = list(gg_age_noleg, gg_choice_noleg),
+                  ncol = 2, nrow = 1,
+                  common.legend = TRUE,
+                  legend = "bottom",
+                  labels = c("A", "B"))
+
+ggsave(p_age_choice_merged, filename = "age_choice_supplement.png", dpi = 600, device = "png", path = here::here("output", "images"), height = 3, width = 8)
 
 #### PLOT: Delay discounting moderation wave 5 ------------------------------------------------------------------------------
 
