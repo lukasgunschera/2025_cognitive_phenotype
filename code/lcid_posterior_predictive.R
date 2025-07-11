@@ -180,26 +180,20 @@ layout <- c(
 combined_plot <- ppcplot2 + ppcplot3 + ppcplot4 + ppcplot5 + ppcplot6 + plot_spacer() +
   plot_layout(design = layout, guides = "collect")
 
-# extract legend
-ppc_legend <- get_legend(ppcplot6)
-
-# arrange plots on a single output
-ppc_plots_all <- ggarrange(
+ppc_plots_all <- ggpubr::ggarrange(
   ppcplot2, ppcplot3, ppcplot4, ppcplot5, ppcplot6,
-  labels = c("A", "B", "C", "D", "E"),
-  ncol = 3, nrow = 2,
-  align = "v",             # align vertically (including axis titles)
-  common.legend = TRUE,    #  shared legend
+  ncol = 2, nrow = 3,
+  common.legend = TRUE,    # shared legend
   legend = "bottom",
-  legend.grob = ppc_legend
+  legend.grob = get_legend(ppcplot6) # extract legend from the last plot
 )
 
 # save plot
 ggsave(ppc_plots_all,
        path = here::here("output", "images", "modelfit"),
        filename = "ppc_plots.png",
-       width = 10,       # increase width (inches)
-       height = 5,       # increase height (inches)
+       width = 6,       # increase width (inches)
+       height = 8,       # increase height (inches)
        dpi = 600,        # lower DPI if file size is too large
        device = "png"
 )
