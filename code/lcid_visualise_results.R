@@ -1879,15 +1879,14 @@ dd_model_sim <- tibble(
 dd_sval_demo <- dd_model_sim %>%
   mutate(k = as.factor(k)) %>%
   ggplot(aes(x = delay, y = subjective_value, colour = k, group = k)) +
-  geom_point(aes(colour = k), size = .5) +
-  geom_line(aes(colour = k)) +
-  scale_colour_viridis_d(direction = -1, option = "viridis", begin = .3, end = .8, labels = c("k = 0.1", "k = 1", "k = 10")) +
+  geom_line(aes(colour = k), linewidth = 1.25) +
+  scale_colour_viridis_d(direction = -1, option = "viridis", begin = 0, end = 1, labels = c("k = 0.1", "k = 1", "k = 10")) +
   plot_theme_legend +
   aspect_ratio_balanced +
   annotate(x = -Inf, xend = -Inf, y = 0, yend = 100, colour = "#2E2E2E", lwd = 0.5, geom = "segment") +
   annotate(x = 0, xend = 80, y = -Inf, yend = -Inf, colour = "#2E2E2E", lwd = 0.5, geom = "segment") +
   theme(legend.position = c(.8, .8)) +
-  labs(x = " Delay [Days]", y = "Subjective Value [£]", colour = "")
+  labs(x = " Delay [days]", y = expression(SV[later] * " [100€]"), colour = "")
 
 ggplot2::ggsave(dd_sval_demo,
   path = here::here("output", "images"),
@@ -1927,14 +1926,27 @@ gg_soft_sim <- dd_soft_sim %>%
   geom_line(aes(colour = beta)) +
   annotate(x = -Inf, xend = -Inf, y = 0, yend = 1, colour = "#2E2E2E", lwd = 0.5, geom = "segment") +
   annotate(x = -15, xend = 15, y = -Inf, yend = -Inf, colour = "#2E2E2E", lwd = 0.5, geom = "segment") +
-  scale_colour_viridis_d(begin = 0, end = 1, labels = c("β = 0.1", "β = 1", "β = 10")) +
+  scale_colour_viridis_d(direction = -1, begin = 0, end = 1, labels = c("β = 0.1", "β = 1", "β = 10")) +
   theme(legend.position = c(0.8, 0.3)) +
-  labs(y = "Acceptance probability (delayed)", x = "Subjective value later - sooner", colour = "")
+  labs(y =  expression(p(accept)[later]), x = expression(SV[later] - SV[sooner]), colour = "")
 
 ggplot2::ggsave(gg_soft_sim,
   path = here::here("output", "images"),
   filename = "softmax_simulation.png", dpi = 1200, device = "png"
 )
+
+gg_dd_sim <- ggpubr::ggarrange(plotlist = list(dd_sval_demo, gg_soft_sim),
+                  ncol = 2, nrow = 1,
+                  common.legend = FALSE,
+                  legend = "bottom",
+                  labels = c("A", "B"))
+
+png(filename = here::here("output", "images", "dd_model_simulated.png"),
+    width = 8, height = 4, units = "in", res = 800)
+print(gg_dd_sim)
+dev.off()
+
+ggplot2::ggsave(gg_dd_sim, path = here::here("output", "images"))
 
 ### PLOTS: Delay Discounting Descriptives -----------------------------------------------------------------------------------
 
